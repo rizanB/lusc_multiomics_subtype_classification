@@ -4,6 +4,12 @@
 
 As an additional objective in my thesis, I've decided to open source my work (source code and draft, and a proper LaTex template since that's not a standard practice for MS theses in Biotechnology, at least not at my institution) in hopes that it would help others. It was a lot of work, and I'm happy if this helps someone. I'd also ask that you don't lift the thesis prose as your own.
 
+## Related
+
+[**lusc_gnn**](https://github.com/rizanB/lusc_gnn) - GCN experiment, own dataset, negative results
+
+After listening to İsmail İlkan Ceylan and Xavier Bresson's ANAIS talk back in December, I built a PyG dataset with LUSC-relevant ppi network and tried to predict LUSC subtypes with graph-based models (GCN baseline). I dropped the idea because baseline GCN achieved 0.37 test accuracy (majority-class: 36.5%). Looking back, the graphs are definitely too sparse for message-passing to be meaningful. 
+
 ## Data availability
 
 This repository does not host any TCGA data. All data was obtained from public sources and can be
