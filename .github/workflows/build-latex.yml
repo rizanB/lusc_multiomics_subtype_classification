@@ -10,6 +10,9 @@ jobs:
   build_pdf:
     runs-on: ubuntu-latest
     
+    permissions:
+      contents: write 
+      
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -17,12 +20,25 @@ jobs:
       - name: Compile LaTeX document
         uses: xu-cheng/latex-action@v3
         with:
-          working_directory: thesis 
+          working_directory: thesis
           root_file: main.tex 
           latexmk_use_xelatex: true 
-
+      
+      # keeping, just in case
       - name: Upload PDF as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Thesis-PDF
           path: thesis/main.pdf
+
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v2
+
+        # publish a release only on push to main, not during PRs  
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        with:
+          files: thesis/main.pdf
+          tag_name: latest
+          name: "Latest Thesis Draft"
+          body: "PDF, latest commit"
+          prerelease: true
