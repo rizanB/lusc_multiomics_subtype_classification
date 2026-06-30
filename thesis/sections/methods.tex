@@ -1,3 +1,27 @@
 \chapter{METHODS}
+This chapter describes the computational workflow used to retrieve, process and utilise omics data to classify established \gls{lusc} molecular subtypes and to interpret the molecular features driving classification.
 
-% placeholder for now;
+% TODO: add a cohort assembly tikz figure
+
+\section{Data Acquisition and Label Matching}
+\label{subsec:data_acquisition}
+
+Matched omics data for the \gls{tcga}-\gls{lusc} cohort were retrieved through the UCSC Xena Platform \parencite{Goldman2020}, which hosts processed \gls{tcga} data harmonised from original \gls{tcga} releases.
+
+\subsection{Omics Preprocessing}
+Preprocessing was performed separately for each modality to preserve the native scale and biological specific to respective platforms.
+
+\subsection{Gene Expression}
+RSEM-normalised read counts were provided in $\log_2(x+1)$-transformed form and required no additional normalisation. Genes with median $\log_2$ expression below 1.0 across all samples were removed as unexpressed. The 2,000 most variable genes were then selected by \gls{mad} filtering.
+
+\subsection{\gls{dna} Methylation}
+Level 3 beta values, representing the ratio of methylated to total probe intensity and ranging from 0 to 1, were used directly. CpG probes missing in more than 20\% of samples were removed, and remaining missing values were imputed using the per-probe median. Probes with standard deviation below 0.05 were removed as near-invariant, and the top 2,000 most variable probes were retained by \gls{mad}. For downstream gene-level interpretation, CpG probe IDs were mapped to gene symbols using Illumina HumanMethylation450 annotation; probes beginning with ``rs'' were treated as SNP probes and excluded from methylation-specific biological interpretation.
+
+\subsection{\gls{mirna} Expression}
+$\log_2(\mathrm{RPM}+1)$-transformed \gls{mirna} expression values were used without further normalisation. Missing values in this data type indicate zero reads (RPM = 0), and were therefore filled with zero rather than imputed. \gls{mirna}s missing in more than 50\% of samples were removed, followed by low-expression filtering (median $\log_2(\mathrm{RPM}+1) < 1.0$) and \gls{mad} filtering to retain 200 most variable mature \gls{mirna}s.
+
+\subsection{Copy Number Variation}
+GISTIC2-thresholded discrete copy number values (integer scale: $-2, -1, 0, 1, 2$) were used directly. No normalisation was applied because the data encode categorical copy number states. Zero-variance genes were checked. The top 2,000 most variable genes were retained by \gls{mad}.
+
+\subsection{RPPA}
+Normalised RPPA protein abundance values were used directly. Proteins missing in more than 20\% of samples were removed, and remaining missing values were imputed using the per-protein median. No additional \gls{mad} filtering was applied because the post-imputation feature count was already appropriate for the available sample size.

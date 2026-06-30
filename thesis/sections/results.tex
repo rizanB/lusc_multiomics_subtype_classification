@@ -1,10 +1,57 @@
 \chapter{RESULTS}
-% write first.
+% TODO: add chapter overview
 
-% TODO: need preprocessed dataset summary as well, after label matching and filtering steps/ MAD..
-% 
-\section{Dataset Characteristics and Cohort Overview}
-table with cohort characteristics (sample counts per modality, subtype distribution, clinical covariates)
+% write first; keep notes/comments in discussion
+
+% TODO: clinical covariates, clinical information? maybe in appendix...
+% TODO: show subtype distribution histogram; or maybe its redundant because its shown in the table below
+
+\section{Cohort Characteristics}
+
+%TODO: refer to methods for dataset retrieval method.. cant think of suitable phrasing rn
+
+\gls{tcga}-\gls{lusc} datasets for five modalities were retrieved (described in Section~\ref{subsec:data_acquisition}). 
+
+Gene expression and \gls{cnv} retained the full labelled 178-sample cohort, whereas \gls{dna} methylation and \gls{mirna} expression had smaller assay overlap (Table~\ref{tab:omics_summary}). Across modalities, the classical subtype was the most frequent class and primitive the least frequent, motivating the use of macro-averaged classification metrics in subsequent analyses.
+
+\begin{table}[htbp]
+\footnotesize
+\caption[TCGA-LUSC omics modalities used in this study]{TCGA-LUSC omics modalities used in this study. Variation in sample size reflects assay availability and label overlap.}
+\centering
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lcccccc}
+    \toprule
+    \textbf{Modality} & \textbf{Configuration} & \textbf{Classical} & \textbf{Basal} & \textbf{Secretory} & \textbf{Primitive} & \textbf{Total} \\
+    \midrule
+    Gene expression & HiSeqV2, RNASeqV2 RSEM-normalised & 65 & 43 & 43 & 27  & 178 \\
+    \gls{dna} methylation & HumanMethylation450k beta values & 29 & 14 & 22 & 11  & 76 \\
+    \gls{mirna} expression & miRNA sequencing, log2(RPM + 1) & 44 & 29 & 20 & 14  & 107 \\
+    RPPA & Normalised protein abundance & 38 & 28 & 28 & 18 & 112 \\
+    CNV & GISTIC2 all-thresholded calls & 65 & 43 & 43 & 27 & 178 \\
+    \bottomrule
+\end{tabular}
+\label{tab:omics_summary}
+\end{table}
+
+\section{Preprocessing Summary}
+
+\begin{table}[htbp]
+\centering
+\caption[Preprocessing and feature-retention summary]{Preprocessing and feature-retention summary for each omics modality. Raw feature counts correspond to the input assay feature spaces. The MAD threshold is the score of the last retained feature in the processed matrix; for RPPA, where all 238 antibodies were retained, this value represents the minimum observed MAD among retained antibodies.}
+\small
+\begin{tabular}{lccc}
+    \toprule
+    \textbf{Modality} & \textbf{Raw features} & \textbf{Retained features} & \textbf{MAD threshold} \\
+    \midrule
+    Gene expression & 60,660 & 2,000 & 1.0808 \\
+    \gls{dna} methylation & 485,577 & 2,000 & 0.2208 \\
+    \gls{mirna} expression & 1,881 & 200 & 0.5954 \\
+    RPPA & 238 & 238 & 0.0692 \\
+    \gls{cnv} & 24,776 & 2,000 & 1.0000 \\
+    \bottomrule
+\end{tabular}
+\label{tab:eda_preprocessing_summary}
+\end{table}
 
 % argument: lusc subtypes have distinct clinical and biological properties, establishing clinical relevance of classification target, checking if subtype-sp signal exists in data.. 
 \section{Characterization of LUSC Subtypes}
@@ -14,13 +61,13 @@ table with cohort characteristics (sample counts per modality, subtype distribut
 
 % survival curves (OS + PFI primary)
 
-\subsection{Immune Microenvironment}
+\subsection{Immune Microenvironment} %epic, xcell, mcpcounter; maybe cibersort if they approve my req in time
 \label{subsec:immune_microenvironment}
 
-\subsection{Somatic Mutation Landscape}
+\subsection{Somatic Mutation Landscape} %maftools
 \label{subsec:somatic_mutation}
 
-\section{Dataset Separability}
+\section{Dataset Separability} %pca +silhouette score, 5 panels; maybe move this to dataset characteristics?
 \label{subsec:dataset_sep}
 
 \section{Performance Across Omics Modalities}
