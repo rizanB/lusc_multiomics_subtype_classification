@@ -1,17 +1,102 @@
-\documentclass[12pt, a4paper]{article}
+\documentclass[a4paper,12pt]{report}
+\renewcommand{\chaptername}{CHAPTER}
+\setcounter{secnumdepth}{4}
+\usepackage{amsmath, amssymb, graphicx}
+\usepackage{newtxtext,newtxmath}
+\usepackage{setspace}
+\usepackage{xcolor} %for red text
+
+% note_to_self: hide references in final version
+\usepackage[hidelinks]{hyperref} 
+\usepackage{geometry}
+\geometry{top=1in, bottom=1in, left=1.5in, right=1in}
+\usepackage{csquotes}
+% \usepackage[backend=biber,style=numeric,citestyle=numeric, sorting=none]{biblatex}
+\usepackage[
+  backend=biber,
+  style=apa
+]{biblatex}
+\DeclareLanguageMapping{english}{english-apa}
+
+\usepackage{booktabs} %for toprule, midrule, bottomrule in tables
+\addbibresource{bibliography/ref.bib}
+\usepackage{longtable} %widepage tables
+\usepackage{lscape} %landscape pages for wide table
+\usepackage{multirow} %multirow cells in tables
+\usepackage{array} %extended column types
+\usepackage{titlesec}
+\titleformat{\chapter}[hang]{\normalfont\bfseries\fontsize{14}{16}\selectfont}{\chaptername\ \thechapter}{1em}{}
+\titlespacing*{\chapter}{0pt}{-10pt}{18pt}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, fit, calc, backgrounds}
+\usepackage{parskip}
+\usepackage{helvet}
+\usepackage[acronym]{glossaries}
+\input{sections/pre/acronyms.tex}
+\makeglossaries
 
 % for XeLaTeX fonts
 \usepackage{fontspec}
 
-\title{quick test}
+% working title; for now
+\title{Comparative Multi-Omics Classification of Lung Squamous Cell Carcinoma Molecular Subtypes Using Interpretable Machine Learning}
+
 \author{Acchyut Bhandari}
-\date{\today}
+% \date{\today}
+
 
 \begin{document}
 
-\maketitle
+\onehalfspacing
+\pagestyle{plain}
+\pagenumbering{roman}
+% \input{sections/pre/cover.tex}
+% \setcounter{page}{2}
 
-\section{Chapter}
-test actions
+% \input{sections/pre/declaration.tex}
 
+% \input{sections/pre/recommendation.tex}
+
+% \input{sections/pre/approval.tex}
+
+% \input{sections/pre/ack.tex}
+% \addcontentsline{toc}{chapter}{Acknowledgements}
+% \clearpage
+
+% \input{sections/abstract.tex}
+% \addcontentsline{toc}{chapter}{ABSTRACT}
+% \clearpage
+
+\printglossary[type=\acronymtype, title={List of Abbreviations and Acronyms}, style=long]
+\addcontentsline{toc}{chapter}{List of Abbreviations and Acronyms}
+\clearpage
+
+\listoftables
+\addcontentsline{toc}{chapter}{List of Tables}
+\clearpage
+
+\listoffigures
+\addcontentsline{toc}{chapter}{List of Figures}
+\clearpage
+
+\tableofcontents
+\addcontentsline{toc}{chapter}{Table of Contents}
+
+% \clearpage
+\pagenumbering{arabic}
+\input{sections/introduction.tex}
+\input{sections/literature_review.tex}
+\input{sections/methods.tex}
+\input{sections/results.tex}
+\input{sections/discussion.tex}
+\input{sections/conclusion.tex}
+
+% \clearpage
+\addcontentsline{toc}{chapter}{References}
+\printbibliography[title={References}]
+
+% \input{sections/post/appendices.tex}
 \end{document}
+
