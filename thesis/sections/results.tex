@@ -10,13 +10,13 @@
 
 %TODO: refer to methods for dataset retrieval method.. cant think of suitable phrasing rn
 
-\gls{tcga}-\gls{lusc} datasets for five modalities were retrieved (described in Section~\ref{subsec:data_acquisition}). 
+TCGA-LUSC datasets for five modalities were retrieved (described in Section~\ref{subsec:data_acquisition}). 
 
-Gene expression and \gls{cnv} retained the full labelled 178-sample cohort, whereas \gls{dna} methylation and \gls{mirna} expression had smaller assay overlap (Table~\ref{tab:omics_summary}). Across modalities, the classical subtype was the most frequent class and primitive the least frequent, motivating the use of macro-averaged classification metrics in subsequent analyses.
+Gene expression and \gls{cnv} retained the full labelled 178-sample cohort, whereas \gls{dna} methylation and miRNA expression had smaller assay overlap (Table~\ref{tab:omics_summary}). Across modalities, the classical subtype was the most frequent class and primitive the least frequent, motivating the use of macro-averaged classification metrics in subsequent analyses.
 
 \begin{table}[htbp]
 \footnotesize
-\caption[TCGA-LUSC omics modalities used in this study]{TCGA-LUSC omics modalities used in this study. Variation in sample size reflects assay availability and label overlap.}
+\caption[Summary of omics modalities used in this study]{Summary of omics modalities used in this study. Variation in sample size reflects assay availability and label overlap.}
 \centering
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{lcccccc}
@@ -24,8 +24,8 @@ Gene expression and \gls{cnv} retained the full labelled 178-sample cohort, wher
     \textbf{Modality} & \textbf{Configuration} & \textbf{Classical} & \textbf{Basal} & \textbf{Secretory} & \textbf{Primitive} & \textbf{Total} \\
     \midrule
     Gene expression & HiSeqV2, RNASeqV2 RSEM-normalised & 65 & 43 & 43 & 27  & 178 \\
-    \gls{dna} methylation & HumanMethylation450k beta values & 29 & 14 & 22 & 11  & 76 \\
-    \gls{mirna} expression & miRNA sequencing, log2(RPM + 1) & 44 & 29 & 20 & 14  & 107 \\
+    DNA methylation & HumanMethylation450k beta values & 29 & 14 & 22 & 11  & 76 \\
+    miRNA expression & miRNA sequencing, log2(RPM + 1) & 44 & 29 & 20 & 14  & 107 \\
     RPPA & Normalised protein abundance & 38 & 28 & 28 & 18 & 112 \\
     CNV & GISTIC2 all-thresholded calls & 65 & 43 & 43 & 27 & 178 \\
     \bottomrule
@@ -87,6 +87,15 @@ Gene expression and \gls{cnv} retained the full labelled 178-sample cohort, wher
 \end{figure}
 
 Secretory and primitive subtype show the shortest median OS of 36 months and 38.1 months respectively, consistent with known proliferative and poorly differentiated biology of primitive subtypes \parencite{Wilkerson2010,Hammerman2012}.
+
+%TODO: fill placeholder values from my r notebooks
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.45\textwidth]{figures/survival/forest_plot_os.pdf}
+\caption[Forest plot, Cox PH model for OS]{Hazard ratios for overall survival by LUSC molecular subtype from Cox proportional hazards regression, with classical subtype as reference (n=\textcolor{red}{AVOCADO}). Points denote hazard ratios and horizontal bars represent 95\% confidence intervals. HR $>$ 1 indicates worse prognosis relative to classical subtype. The proportional hazards assumption was verified using scaled Schoenfeld residuals (cox.zph global p=\textcolor{red}{AVOCADO}). Concordance index=\textcolor{red}{AVOCADO}}
+\label{fig:forest_plot_os}
+\end{figure}
 
 \subsection{Immune Microenvironment} %epic, xcell, mcpcounter; maybe cibersort if they approve my req in time
 \label{subsec:immune_microenvironment}
