@@ -56,10 +56,37 @@ Gene expression and \gls{cnv} retained the full labelled 178-sample cohort, wher
 % argument: lusc subtypes have distinct clinical and biological properties, establishing clinical relevance of classification target, checking if subtype-sp signal exists in data.. 
 \section{Characterization of LUSC Subtypes}
 
-\subsection{Clinical characteristics}
+\subsection{Clinical Characteristics}
 \label{subsec:clinical_characteristics}
 
-% survival curves (OS + PFI primary)
+% survival curves (OS + PFI primary) os = clinical standard, pfi because tcga-cdr expl. recommends that for lusc; i think two figures side by side makes sense, aes: might have to make the font slightly bigger, for future me
+
+%TODO: keep global log-rank test for both; bh-corrected pairwise table and cox hr table for os; not sure about forest plot for os.
+
+%TODO: cite wilkerson, hammerman for known poorly diff. biology
+%TODO: add median survival and 95% CI to fig caption; not happy with caption phrasing rn, will fix later
+%TODO: keep pfi as primary endpoint for lusc, in literature; cite liu et al 2018
+
+\begin{figure}[H]
+\centering
+
+\begin{subfigure}{0.45\textwidth}
+\centering
+\includegraphics[width=\textwidth]{figures/survival/KM_OS_by_subtype.pdf}
+\caption{Overall Survival}
+\label{sub:overall_survival}
+\end{subfigure}\hspace{0.05\textwidth}
+\begin{subfigure}{0.45\textwidth}
+\centering
+\includegraphics[width=\textwidth]{figures/survival/KM_PFI_by_subtype.pdf}
+\caption{Progression-Free Interval}
+\label{sub:progression_free}
+\end{subfigure}
+\caption[KM survival curves for TCGA-LUSC samples stratified by molecular subtypes]{Survival curves showing Overall Survival~(\subref{sub:overall_survival}) and Progression-Free Interval~(\subref{sub:progression_free}) for TCGA-LUSC samples (n=178) stratified by molecular subtypes. Median survival and 95\% confidence intervals were computed by the Brookmeyer-Crowley method. Shaded regions denote 95\% confidence intervals and risk table shows at-risk patient counts at selected time points.}
+\label{fig:km_survival_by_subtype}
+\end{figure}
+
+Secretory and primitive subtype show the shortest median OS of 36 months and 38.1 months respectively, consistent with known proliferative and poorly differentiated biology of primitive subtypes \parencite{Wilkerson2010,Hammerman2012}.
 
 \subsection{Immune Microenvironment} %epic, xcell, mcpcounter; maybe cibersort if they approve my req in time
 \label{subsec:immune_microenvironment}
