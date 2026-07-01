@@ -1,8 +1,13 @@
-# (working title) Comparative Multi-Omics Classification of LUSC Molecular Subtypes Using Interpretable Machine Learning
+# MS Thesis
 
 > I plan to update this repo frequently, but it's not complete yet.
 
-As an additional objective in my thesis, I've decided to open source my work (source code and draft, and a proper LaTex template since that's not a standard practice for MS theses in Biotechnology, at least not at my institution) in hopes that it would help others. It was a lot of work, and I'm happy if this helps someone. I'd also ask that you don't lift the thesis prose as your own.
+As an additional objective in my thesis, I've decided to document and open source my work (source code and draft) in hopes that it would help others. It was a lot of work, and I'm happy if this helps someone. I'd also ask that you don't lift the thesis prose as your own.
+
+## Planned
+- [ ] a snakemake workflow for reproducibility
+- [ ] MS. Biotechnology Thesis Template, Tribhuvan University (an Overleaf template would cut down time wasted on formatting)
+- [ ] separate licenses for thesis and source code
 
 ## Related
 
@@ -30,13 +35,13 @@ If you use this code, please cite:
   school = {Central Department of Biotechnology, Tribhuvan University},
   address  = {Kathmandu, Nepal},
   year   = {2026},
-  note   = {will get a doi issued once I'm happy with the final draft}
+  note   = {dont cite this yet}
 }
 ```
 
 ## Contributions
 
-The work here is for my MS thesis but I'm happy to see contributions in the form of issues. If you want to contribute a PR, please leave suggestions in issues first.
+The work here is for my MS thesis but I'm happy to see contributions in the form of issues. If you want to contribute a PR, or would like to help, please leave suggestions in issues first.
 
 ## License
 Kindly note that [this repo doesn't have a license](https://choosealicense.com/no-permission/) and that restricts being copied, distributed or modified.
