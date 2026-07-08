@@ -14,7 +14,7 @@ TCGA-LUSC datasets for five modalities were retrieved (described in Section~\ref
 
 Gene expression and \gls{cnv} retained the full labelled 178-sample cohort, whereas \gls{dna} methylation and miRNA expression had smaller assay overlap (Table~\ref{tab:omics_summary}). Across modalities, the classical subtype was the most frequent class and primitive the least frequent, motivating the use of macro-averaged classification metrics in subsequent analyses.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \footnotesize
 \caption[Summary of omics modalities used in this study]{Summary of omics modalities used in this study. Variation in sample size reflects assay availability and label overlap.}
 \centering
@@ -35,10 +35,18 @@ Gene expression and \gls{cnv} retained the full labelled 178-sample cohort, wher
 
 \section{Preprocessing Summary}
 
-\begin{table}[htbp]
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/eda/feature_variability_distributions.pdf}
+\caption[Feature variability distributions across omics modalities]{Feature variability distribution across processed omics modalities. Panels show MAD distributions for (A) gene expression, (B) \gls{dna} methylation, (C) \gls{mirna} expression, (D) RPPA, and (E) \gls{cnv}. Dashed vertical lines denote retained-feature threshold used for the processed matrix; for RPPA, all 238 antibodies were retained and the line denotes the minimum retained MAD.}
+\label{fig:eda_feature_variability}
+\end{figure}
+
+
+\begin{table}[H]    
+\footnotesize
 \centering
 \caption[Preprocessing and feature-retention summary]{Preprocessing and feature-retention summary for each omics modality. Raw feature counts correspond to the input assay feature spaces. The MAD threshold is the score of the last retained feature in the processed matrix; for RPPA, where all 238 antibodies were retained, this value represents the minimum observed MAD among retained antibodies.}
-\small
 \begin{tabular}{lccc}
     \toprule
     \textbf{Modality} & \textbf{Raw features} & \textbf{Retained features} & \textbf{MAD threshold} \\
@@ -52,6 +60,37 @@ Gene expression and \gls{cnv} retained the full labelled 178-sample cohort, wher
 \end{tabular}
 \label{tab:eda_preprocessing_summary}
 \end{table}
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\textwidth]{figures/eda/methylation_mean_beta_and_variance.pdf}
+\caption[Methylation beta values and retained-probe variance]{\gls{dna} methylation overview for labelled samples. (A) Mean beta value per sample stratified by subtype. Boxplots show median and interquartile range; points show individual samples. (B) Variance distribution across retained methylation probes. Dashed line denotes the minimum variance among retained probes in the processed matrix.}
+\label{fig:eda_methylation}
+\end{figure}
+
+
+% TODO: i need mirna annotations; mirbase server/ftp seems down; might have to check for raw annotations
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\textwidth]{figures/eda/mirna_top50_variable_heatmap.pdf}
+\caption[Top variable miRNA heatmap]{Clustered heatmap of 50 most variable \gls{mirna} features across labelled \gls{tcga}-\gls{lusc} samples. Rows are \gls{mirna} features and columns are samples; values are row-scaled z-scores.}
+\label{fig:eda_mirna_heatmap}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.90\textwidth]{figures/eda/rppa_antibody_correlation_heatmap.pdf}
+\caption[RPPA antibody correlation heatmap]{Hierarchically-clustered correlation heatmap across all 238 RPPA antibodies. Rows and columns represent antibodies, and colour denotes antibody-antibody correlation across RPPA samples. The top and side annotation strips indicate the expression subtype in which each antibody had the highest mean abundance. }
+\label{fig:eda_rppa_correlation}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.56\textwidth]{figures/eda/cnv_fraction_genome_altered.pdf}
+\caption[CNV fraction genome altered by subtype]{Fraction of retained \gls{cnv} features with non-zero GISTIC2-thresholded copy-number state per sample, stratified by subtype. Boxplots show median and interquartile range; points show individual samples. Because the calculation is based on the 2,000 retained \gls{cnv} features, it represents relative alteration burden within the processed \gls{cnv} matrix.}
+\label{fig:eda_cnv_fga}
+\end{figure}
 
 % argument: lusc subtypes have distinct clinical and biological properties, establishing clinical relevance of classification target, checking if subtype-sp signal exists in data.. 
 \section{Characterization of LUSC Subtypes}
@@ -99,12 +138,82 @@ Secretory and primitive subtype show the shortest median OS of 36 months and 38.
 
 \subsection{Immune Microenvironment} %epic, xcell, mcpcounter; maybe cibersort if they approve my req in time
 \label{subsec:immune_microenvironment}
+% partly to check if the cohorts show expected immune profile..
+% cibersort removed from original plan; cibersort isnt suggested by sturm2019; epic+xcell = better idea for now; suggests picking method per cell type but considering epic,xcell+cibersort as comparing would be harder if i used a separate tool for every cell type.
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/tme/EPIC_mean_cell_fraction_heatmap.pdf}
+    \caption[EPIC immune deconvolution comparison across LUSC subtypes]{
+    Mean EPIC cell fractions across LUSC subtypes ($n = 178$). Rows represent expression subtypes; columns represent EPIC-inferred cell compartments ordered by mean fraction. Numeric values show the mean fraction per subtype-cell-type combination. Significance annotations denote BH-adjusted Kruskal-Wallis $q$-values across subtypes ($*q < 0.05$, $**q < 0.01$, $***q < 0.001$; ns: not significant).
+    }
+    \label{fig:epic_immune_heatmap}
+\end{figure}
+
+Secretory subtype showed the highest EPIC fractions for macrophages and CAFs;  primitive subtype showed the highest fraction of uncharacterised cells (otherCells), consistent with its highly proliferative phenotype. B cells did not differ significantly across subtypes.
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/tme/EPIC_selected_cell_type_boxplots.pdf}
+    \caption[EPIC immune cell fractions for selected populations]{
+    EPIC-estimated fractions for five cell populations across subtypes. Boxplots show median and interquartile range; individual points are samples. 
+    }
+    \label{fig:epic_immune_boxplots}
+\end{figure}
+
+% Macrophage fractions were highest in the secretory subtype (mean 0.0141) and significantly higher relative to all other subtypes after BH correction. EPIC CD8 T cell fractions were highest in primitive tumours; the discordance with xCell CD8 T cell enrichment scores is discussed in Section~\ref{sec:discussion}.
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/tme/xCell_selected_cell_type_boxplots.pdf}
+    \caption[xCell validation of immune enrichment scores]{
+    xCell enrichment scores for selected immune populations across subtypes. xCell scores are relative enrichment estimates, not cell fractions; scores across cell types are not directly comparable. 
+    }
+    \label{fig:xcell_immune_validation}
+\end{figure}
+
+% The secretory subtype showed the highest enrichment for macrophages M1 and M2, B cells, class-switched memory B cells, CD8$^+$ T cells, CD8$^+$ central memory T cells, and Tregs (all $q < 0.05$ after BH correction). Broad NK cell scores did not differ significantly by xCell ($q = 0.642$).
+   
 
 \subsection{Somatic Mutation Landscape} %maftools
 \label{subsec:somatic_mutation}
 
-\section{Dataset Separability} %pca +silhouette score, 5 panels; maybe move this to dataset characteristics?
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\textwidth]{figures/mutation_analysis/oncoplot_drivers_subtype_annotated.pdf}
+\caption[Subtype-annotated oncoplot]{Oncoplot showing gene alterations across subtypes. Curated driver panel consisted of TP53, NFE2L2, KEAP1, RB1, PTEN, CDKN2A, PIK3CA, SOX2, FGFR1, TGM1 and KRT75.}
+\label{fig:oncoplot_drivers_subtype_annotated}
+\end{figure}
+
+
+% TODO: it seems i forgot to do pairwise tests; also have to add significance tests to this figure.
+% TP53 was the most frequently mutated gene overall but did not show subtype-specific enrichment, consistent with its role as a common subtype-independent driver alteration in LUSC
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.65\textwidth]{figures/mutation_analysis/tmb_by_subtype.pdf}
+\caption[Tumor mutational burden by subtype]{Tumour mutational burden by subtype.}
+\label{fig:tmb_by_subtype}
+\end{figure}
+
+\section{Dataset Separability} 
+%  to show that data isn't noise and subtypes are separable in unsupervised space for a classifier; or is the data noise ;) silhouette score seems to be an easy way to show this. pca for labeled ge samples seems consistent; hard to classify.
+%pca+silhouette score, 5 panels; maybe move this to dataset characteristics?
+% i think i did pca for ge on kaggle, https://www.kaggle.com/code/rizann/lusc-ge-pca 
+% have to check; and get figures with the color palette ive used here.
 \label{subsec:dataset_sep}
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/separability/lusc_ge_pca.png}
+\caption[Tumor mutational burden by subtype]{\textcolor{red}{AVOCADO; PCA with silhouette score, cum var explained by 30 PCs.}}
+\label{fig:tmb_by_subtype}
+\end{figure}
+
 
 \section{Performance Across Omics Modalities}
 \label{subsec:omics_perf}
