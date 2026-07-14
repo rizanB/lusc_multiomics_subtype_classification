@@ -204,21 +204,96 @@ TP53 was the most frequently mutated gene overall (Figure~\ref{fig:oncoplot_driv
 
 TMB did not vary significantly across subtypes (Figure~\ref{fig:tmb_by_subtype}).
 
-\section{Dataset Separability} 
+\section{Dimensionality Structure and Subtype Separability} 
+\label{sec:dim_structure_separability}
 % TODO: BE CAREFUL NOT TO CALL THIS VALIDATION OR KEEP WITH VALIDATION STEPS; ITS CHARACTERISATION AT BEST; MAYBE ADD PERMANOVA; MAKES SENSE HERE; SILHOUETTE ON 80% COMPONENTS MAKES MORE SENSE?
 %  to show that data isn't noise and subtypes are separable in unsupervised space for a classifier; or is the data noise ;) silhouette score seems to be an easy way to show this. pca for labeled ge samples seems consistent; hard to classify.
 %pca+silhouette score, 5 panels; maybe move this to dataset characteristics?
 % i think i did pca for ge on kaggle, https://www.kaggle.com/code/rizann/lusc-ge-pca 
 % have to check; and get figures with the color palette ive used here.
-\label{subsec:dataset_sep}
 
+PCA-based separability analysis revealed substantial differences in subtype structure across omics modalities (Table~\ref{tab:dataset_sep_summary}). 
+
+% TODO: out of ideas; add interpretation later.
+
+\subsection{Dimensionality Structure}
+
+\begin{table}[H]
+\footnotesize
+\caption[\textcolor{red}{AVOCADO}]{\textcolor{red}{AVOCADO}. PCs denotes the number of components required to represent 80\% of the variance. S denotes Silhouette score. pseudo-F and p denote \gls{permanova} pseudo-F statistic and permutation p-value respectively.}
+
+\centering
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lccccccc}
+    \toprule
+    \textbf{Modality} & \textbf{n} & \textbf{Features} & \textbf{PCs} & \textbf{PC1(\%)} & \textbf{S} & \textbf{pseudo-F} & \textbf{p} \\
+    \midrule
+    Gene expression     & 178    & 2000 & 62 & 12.3 & 0.047 & 8.997  & 0.001 \\
+    miRNA expression    & 107    & 200  & 30 & 16.6 & 0.031 & 5.191  & 0.001 \\
+    RPPA                & 112    & 238  & 27 & 16.4 & 0.008 & 3.935  & 0.001 \\
+    DNA methylation     & 76     & 2000 & 11 & 57.7 & -0.060 & 3.491  & 0.005 \\
+    CNV                 & 178    & 2000 & 5  & 44.7 & -0.031 & 6.759  & 0.001 \\
+    \bottomrule
+\end{tabular}
+\label{tab:dataset_sep_summary}
+\end{table}
+
+
+The number of principal components required to explain 80\% of cumulative variance varied  across platforms, reflecting differences in feature covariance structure. Gene expression (n=178, 2000 genes) required 62 components, with PC1 explaining 12.3\% of variance. miRNA (n=107, 200 features) required 30 components and RPPA (n=112, 238 proteins) required 27 components. In contrast, methylation (n=76, 2000 probes) reached 80\% variance in only 11 components, with PC1 explaining 57.7\% variance. CNV (n=178, 2000 genes) was the most compact of all modalities, requiring only 5 components with PC1 explaining 44.7\% and PC2 a further 20.8\%.
+
+\subsection{Subtype Separability}
+
+\textbf{\gls{permanova}.} All modalities showed statistically significant subtype group separation (p $\leq$ 0.005), indicating that subtype centroids are non-random across every omics platform. Gene expression showed the strongest centroid separation (pseudo-F = 8.997, p $\leq$ 0.001), followed by CNV (pseudo-F = 6.759, p $\leq$ 0.001), miRNA (pseudo-F = 5.191, p $\leq$ 0.001), RPPA (pseudo-F = 3.935, p $\leq$ 0.001), and methylation (pseudo-F = 3.491, p = 0.005).
+
+
+% ge:   Per-subtype silhouette: {'classical': 0.0907, 'basal': 0.0697, 'secretory': 0.0248, 'primitive': -0.0621}
+% mirna:   Per-subtype silhouette: {'classical': 0.0978, 'basal': 0.0275, 'secretory': 0.006, 'primitive': -0.1334}
+% rppa:  Per-subtype silhouette: {'classical': -0.0075, 'basal': 0.0553, 'secretory': 0.0181, 'primitive': -0.0468}
+% meth:   Per-subtype silhouette: {'classical': -0.1275, 'basal': -0.0281, 'secretory': -0.0155, 'primitive': -0.0107}
+% cnv:   Per-subtype silhouette: {'classical': 0.0872, 'basal': -0.106, 'secretory': -0.0112, 'primitive': -0.2241}
+
+\textbf{Silhouette scores.} Silhouette scores showed remarkable discordance from \gls{permanova}, with gene expression achieving the highest individual-sample cluster cohesion (S = 0.047), followed by miRNA (S = 0.031), RPPA (S = 0.008), CNV (S = -0.031), and methylation (S = -0.060). Negative silhouette scores for CNV and methylation indicate that, on average, samples are geometrically closer to an adjacent subtype's centroid than their own, reflecting high within-group variance relative to between-group separation, even when centroids are statistically distinguishable. 
+
+\textbf{Per-subtype Silhouette scores.} Primitive subtype showed negative mean silhouette scores across all modalities (GE: -0.062; miRNA: -0.133; RPPA: -0.047; methylation: -0.011; CNV: -0.224), indicating that primitive samples are consistently closer to other subtype centroids than to their own. Classical and basal subtypes showed highest silhouette scores across modalities, suggesting more coherent cluster membership in their respective omics feature spaces.
+
+% this finding, that primitive subtypes is kind of what i found in classifier ersults, near-zero per-class F1 for primitive. suggests like: primitive subtype is defined by shared prol. and ep. programs than distinct identity.; maybe address in discussion..
+
+%TODO: add in result: DOES METH HERE SUGGEST a single dominant meth axis, consistent with cpg island methylator phenotype-like structure in luscs?
+
+%DONE: NOW, MAYBE MOVE PER-MODALITY FIGURES TO APPENDIX AND JUST KEEP THE TABLE HERE? chore for future me.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{figures/separability/lusc_ge_pca.png}
-\caption[Principal component analysis of TCGA-LUSC omics modalities]{\textcolor{red}{Each panel shows PC1 versus PC2 for one modality; variance explained by each component is shown on the axis label. Silhouette scores (S) computed on the top-30 principal components represent cluster separation independent of any supervised model.}}
-\label{fig:pca_silhouette_ge}
+\includegraphics[width=\textwidth]{figures/separability/pca_separability_gene_expression.pdf}
+\caption[Principal component analysis of gene expression modality]{Left figure shows PC1 versus PC2 for gene expression; variance explained by each component is shown on the axis label. }
 \end{figure}
+
+% Silhouette scores (S) computed on the top-30 principal components represent cluster separation independent of any supervised model.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/separability/pca_separability_cnv.pdf}
+\caption[Principal component analysis of CNV modality]{Left figure shows PC1 versus PC2 for CNV; variance explained by each component is shown on the axis label. }
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/separability/pca_separability_mirna.pdf}
+\caption[Principal component analysis of miRNA modality]{Left figure shows PC1 versus PC2 for miRNA; variance explained by each component is shown on the axis label. }
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/separability/pca_separability_methylation.pdf}
+\caption[Principal component analysis of methylation modality]{Left figure shows PC1 versus PC2 for methylation; variance explained by each component is shown on the axis label. }
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/separability/pca_separability_rppa.pdf}
+\caption[Principal component analysis of RPPA modality]{Left figure shows PC1 versus PC2 for RPPA; variance explained by each component is shown on the axis label. }
+\end{figure}
+
 
 
 \section{Performance Across Omics Modalities}

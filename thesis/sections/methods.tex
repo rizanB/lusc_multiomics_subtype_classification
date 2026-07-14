@@ -25,3 +25,11 @@ GISTIC2-thresholded discrete copy number values (integer scale: $-2, -1, 0, 1, 2
 
 \subsection{RPPA}
 Normalised RPPA protein abundance values were used directly. Proteins missing in more than 20\% of samples were removed, and remaining missing values were imputed using the per-protein median. No additional \gls{mad} filtering was applied because the post-imputation feature count was already appropriate for the available sample size.
+
+\section{Dataset Separability}
+Principal component analysis (PCA) was performed on each omics modality separately to characterise the geometric separability of the subtypes within each feature space. StandardScaler normalisatin was applied to each modality, and minimum number of principal components explaining \geq 80\% of cumulative variance was determined. 
+
+% TODO: cite scipy.stats library here, as i used squareform for euclidean distance thing.. other methods too.
+% TODO: cite Rousseeuw, 1987 for silhouette score.  
+% TODO: cite (Anderson, 2001) for permanova.  
+Separability of subtypes was quantified using two complementary measures. The silhouette score was computed on the 80\%-variance PCA subspace, providing a sample-level measure of cluster cohesion and separation ranging from -1 (misassigned) to +1 (well-separated). Per-subtype mean silhouette scores were computed to identify subtypes with differential cluster membership. PERMANOVA with 999 permutations was applied to the same PCA subspace to test the null hypothesis that subtype group centroids are statistically indistinguishable from permuted label assignments; (pseudo-F statistic; permutation p-value). PCA projections were visualised on PC1 and PC2 with 95\% confidence ellipses (n_std = 2.0) and subtype centroids.
