@@ -254,34 +254,47 @@ subtype-specific enrichment at these frequencies is limited by the current cohor
 % i think i did pca for ge on kaggle, https://www.kaggle.com/code/rizann/lusc-ge-pca 
 % have to check; and get figures with the color palette ive used here.
 
-PCA-based separability analysis revealed substantial differences in subtype structure across omics modalities (Table~\ref{tab:dataset_sep_summary}). 
-
-% TODO: out of ideas; add interpretation later.
+Prior to supervised classification, geometric separability of the four \gls{lusc} molecular subtypes was assessed for each omics feature space using \gls{pca}, Silhouette scoring, and \gls{permanova}.
 
 \subsection{Dimensionality Structure}
 
+The number of principal components required to explain 80\% of cumulative variance varied substantially across platforms, reflecting differences in feature covariance structure across omics modalities. Gene expression (n=178, 2000 genes) required the highest number of (62 PCs; PC1 = 12.3\% variance), consistent with transcriptional variation being distributed diffusely across thousands of co-regulated gene programs. miRNA (n=107, 200 features) required 30 components (PC1 = 16.6\% variance) and \gls{rppa} (n=112, 238 proteins) required 27 components (PC1 = 16.4\% variance). In contrast, \gls{dna} methylation (n=76, 2000 probes) required only 11 components to reach 80\% variance, with PC1 explaining an unusually high 57.7\% of total variance. This likely represents genome-wide methylation differences between samples, analogous to \gls{cimp}-like methylation architecture reported in squamous carcinomas. CNV (n=178, 2000 genes) was the most compact of all modalities, requiring only 5 components (PC1 = 44.7\%; PC2 = 20.8\%), reflecting coarse-chromosal-arm-scale nature of copy number events relative to gene-level expression or methylation variation.
+
 \begin{table}[H]
 \footnotesize
-\caption[\textcolor{red}{AVOCADO}]{\textcolor{red}{AVOCADO}. PCs denotes the number of components required to represent 80\% of the variance. S denotes Silhouette score. pseudo-F and p denote \gls{permanova} pseudo-F statistic and permutation p-value respectively.}
+\caption[Dimensionality structure and subtype separability across omics modalities]{Dimensionality structure and subtype separability for each omics modality. PCs denotes the number of principal components required to explain $\ge 80\%$ of cumulative variance. Silhouette score (S) and \gls{permanova} statistics were computed on this reduced represeantation. Per-subtype silhouette scores are shown in parentheses (Cl: classical; Ba: basal; Se: secretory; Pr: primitive). $^{**}p \leq 0.001$; $^{*}p = 0.005$. The minimum achievable permutation $p$-value with 999 permutations is 0.001; values reported as $\leq 0.001$ indicate zero permutations produced a pseudo-$F$ as extreme as the observed statistic.}
 
 \centering
-\setlength{\tabcolsep}{3pt}
-\begin{tabular}{lccccccc}
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{lccccccccccc}
     \toprule
-    \textbf{Modality} & \textbf{n} & \textbf{Features} & \textbf{PCs} & \textbf{PC1(\%)} & \textbf{S} & \textbf{pseudo-F} & \textbf{p} \\
+    \multirow{2}{*}{\textbf{Modality}} &
+    \multirow{2}{*}{\textbf{n}} &
+    \multirow{2}{*}{\textbf{Feat.}} &
+    \multirow{2}{*}{\textbf{PCs}} &
+    \multirow{2}{*}{\textbf{PC1 (\%)}} &
+    \multirow{2}{*}{\textbf{S}} &
+    \multicolumn{4}{c}{\textbf{Per-subtype S}} &
+    \multirow{2}{*}{\textbf{pseudo-F}} &
+    \multirow{2}{*}{\textbf{p}} \\
+    \cmidrule(lr){7-10}
+    & & & & & & \textbf{Cl} & \textbf{Ba} & \textbf{Se} & \textbf{Pr} & & \\
     \midrule
-    Gene expression     & 178    & 2000 & 62 & 12.3 & 0.047 & 8.997  & 0.001 \\
-    miRNA expression    & 107    & 200  & 30 & 16.6 & 0.031 & 5.191  & 0.001 \\
-    RPPA                & 112    & 238  & 27 & 16.4 & 0.008 & 3.935  & 0.001 \\
-    DNA methylation     & 76     & 2000 & 11 & 57.7 & -0.060 & 3.491  & 0.005 \\
-    CNV                 & 178    & 2000 & 5  & 44.7 & -0.031 & 6.759  & 0.001 \\
+    Gene expression  & 178 & 2000 & 62 & 12.3 &  0.047
+        &  0.091 &  0.070 &  0.025 & $-$0.062 & 8.997 & $\leq$0.001$^{**}$ \\
+    miRNA expression & 107 & 200  & 30 & 16.6 &  0.031
+        &  0.098 &  0.028 &  0.006 & $-$0.133 & 5.191 & $\leq$0.001$^{**}$ \\
+    \gls{rppa}       & 112 & 238  & 27 & 16.4 &  0.008
+        & $-$0.008 &  0.055 &  0.018 & $-$0.047 & 3.935 & $\leq$0.001$^{**}$ \\
+    \gls{dna} methylation & 76  & 2000 & 11 & 57.7 & $-$0.060
+        & $-$0.128 & $-$0.028 & $-$0.016 & $-$0.011 & 3.491 & 0.005$^{*}$ \\
+    \gls{cnv}        & 178 & 2000 &  5 & 44.7 & $-$0.031
+        &  0.087 & $-$0.106 & $-$0.011 & $-$0.224 & 6.759 & $\leq$0.001$^{**}$ \\
     \bottomrule
 \end{tabular}
 \label{tab:dataset_sep_summary}
 \end{table}
 
-
-The number of principal components required to explain 80\% of cumulative variance varied  across platforms, reflecting differences in feature covariance structure. Gene expression (n=178, 2000 genes) required 62 components, with PC1 explaining 12.3\% of variance. miRNA (n=107, 200 features) required 30 components and RPPA (n=112, 238 proteins) required 27 components. In contrast, methylation (n=76, 2000 probes) reached 80\% variance in only 11 components, with PC1 explaining 57.7\% variance. CNV (n=178, 2000 genes) was the most compact of all modalities, requiring only 5 components with PC1 explaining 44.7\% and PC2 a further 20.8\%.
 
 \subsection{Subtype Separability}
 
