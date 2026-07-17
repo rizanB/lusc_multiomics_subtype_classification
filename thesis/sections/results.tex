@@ -298,7 +298,7 @@ The number of principal components required to explain 80\% of cumulative varian
 
 \subsection{Subtype Separability}
 
-\textbf{\gls{permanova}.} All modalities showed statistically significant subtype group separation (p $\leq$ 0.005), indicating that subtype centroids are non-random across every omics platform. Gene expression showed the strongest centroid separation (pseudo-F = 8.997, p $\leq$ 0.001), followed by CNV (pseudo-F = 6.759, p $\leq$ 0.001), miRNA (pseudo-F = 5.191, p $\leq$ 0.001), RPPA (pseudo-F = 3.935, p $\leq$ 0.001), and methylation (pseudo-F = 3.491, p = 0.005).
+\textbf{\gls{permanova}.} All modalities produced statistically significant subtype group separation by \gls{permanova} (p $\leq$ 0.005 in all cases; Table~\ref{tab:dataset_sep_summary}), indicating that subtype group centroids are distinguishable from random label permutations across every omics platform. Gene expression showed the strongest centroid separation (pseudo-$F = 8.997$, $p \leq 0.001$), followed by CNV (pseudo-$F = 6.759$, $p \leq 0.001$), miRNA (pseudo-$F = 5.191$, $p \leq 0.001$), RPPA (pseudo-$F = 3.935$, $p \leq 0.001$), and methylation (pseudo-$F = 3.491$, $p = 0.005$).
 
 
 % ge:   Per-subtype silhouette: {'classical': 0.0907, 'basal': 0.0697, 'secretory': 0.0248, 'primitive': -0.0621}
@@ -307,9 +307,14 @@ The number of principal components required to explain 80\% of cumulative varian
 % meth:   Per-subtype silhouette: {'classical': -0.1275, 'basal': -0.0281, 'secretory': -0.0155, 'primitive': -0.0107}
 % cnv:   Per-subtype silhouette: {'classical': 0.0872, 'basal': -0.106, 'secretory': -0.0112, 'primitive': -0.2241}
 
-\textbf{Silhouette scores.} Silhouette scores showed remarkable discordance from \gls{permanova}, with gene expression achieving the highest individual-sample cluster cohesion (S = 0.047), followed by miRNA (S = 0.031), RPPA (S = 0.008), CNV (S = -0.031), and methylation (S = -0.060). Negative silhouette scores for CNV and methylation indicate that, on average, samples are geometrically closer to an adjacent subtype's centroid than their own, reflecting high within-group variance relative to between-group separation, even when centroids are statistically distinguishable. 
+\textbf{Silhouette scores.} Mean silhouette scores revealed different modality ordering from \gls{permanova}, with gene expression achieving the highest individual-sample cluster cohesion ($S = 0.047$), followed by miRNA ($S = 0.031$), RPPA ($S = 0.008$), CNV ($S = -0.031$), and methylation ($S = -0.060$). Negative silhouette scores for CNV and methylation indicate that, on average, samples are geometrically closer to an adjacent subtype's centroid than their own, reflecting high within-group variance relative to between-group separation, even when centroids are statistically distinguishable. 
 
-\textbf{Per-subtype Silhouette scores.} Primitive subtype showed negative mean silhouette scores across all modalities (GE: -0.062; miRNA: -0.133; RPPA: -0.047; methylation: -0.011; CNV: -0.224), indicating that primitive samples are consistently closer to other subtype centroids than to their own. Classical and basal subtypes showed highest silhouette scores across modalities, suggesting more coherent cluster membership in their respective omics feature spaces.
+\textbf{Per-subtype Silhouette scores.} Primitive subtype showed negative mean silhouette scores across all modalities (GE: $-0.062$; miRNA: $-0.133$; RPPA: $-0.047$; methylation: $-0.011$; CNV: $-0.224$), indicating that primitive samples are consistently closer, on average, to the centroid of another subtype than to their own. Classical and basal subtypes showed highest silhouette scores in majority of modalities, suggesting more internally consistent omics feature profiles.
+
+\textbf{\gls{cnv} structural paradox.} The second-highest \gls{permanova} pseudo-$F$ for \gls{cnv} ($6.759$) is accompanied by a negative mean silhouette ($-0.031$) and the lowest per-class F1 in classification (Section~\ref{subsec:omics_perf}). The high compactness of the \gls{cnv} \gls{pca} structure (5 components for 80\% variance; PC1 = 44.7\%) suggests that the majority of \gls{cnv} variation is dominated by a small number of large chromosomal events- likely including focal amplifications at 3q26 (encompassing \textit{SOX2} and \textit{PIK3CA}) and 3p deletions characteristic of \gls{lusc}. The negative per-subtype silhouette for basal ($-0.106$), secretory ($-0.011$), and primitive ($-0.224$) subtypes within the \gls{cnv} feature space confirms that copy number profiles do not encode the four-subtype structure at an  individual-sample level, consistent with molecular subtypes being primarily defined by transcriptional and epigenetic programmes rather than structural genomic events.
+
+Per-modality \gls{pca} scatter plots for each of the five omics modalities are shown in Figures~\ref{fig:pca_ge}-\ref{fig:pca_rppa}. These projections capture 12.3-65.3\% of total per-modality variance.
+
 
 % this finding, that primitive subtypes is kind of what i found in classifier ersults, near-zero per-class F1 for primitive. suggests like: primitive subtype is defined by shared prol. and ep. programs than distinct identity.; maybe address in discussion..
 
@@ -320,7 +325,8 @@ The number of principal components required to explain 80\% of cumulative varian
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{figures/separability/pca_separability_gene_expression.pdf}
-\caption[Principal component analysis of gene expression modality]{Left figure shows PC1 versus PC2 for gene expression; variance explained by each component is shown on the axis label. }
+\caption[\gls{pca} of gene expression modality]{\gls{pca} of gene expression feature space ($n = 178$; 2,000 \gls{mad}-selected genes); Left: PC1 versus PC2. \gls{pc} variance contributions shown on axis labels. Right: cumulative variance explained by top principal components.}
+\label{fig:pca_ge}
 \end{figure}
 
 % Silhouette scores (S) computed on the top-30 principal components represent cluster separation independent of any supervised model.
@@ -328,27 +334,30 @@ The number of principal components required to explain 80\% of cumulative varian
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{figures/separability/pca_separability_cnv.pdf}
-\caption[Principal component analysis of CNV modality]{Left figure shows PC1 versus PC2 for CNV; variance explained by each component is shown on the axis label. }
+\caption[\gls{pca} of \gls{cnv} modality]{\gls{pca} of CNV feature space ($n = 178$; 2,000 \gls{mad}-selected genes); Left: PC1 versus PC2. \gls{pc} variance contributions shown on axis labels. Right: cumulative variance explained by top principal components.}
+\label{fig:pca_cnv}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{figures/separability/pca_separability_mirna.pdf}
-\caption[Principal component analysis of miRNA modality]{Left figure shows PC1 versus PC2 for miRNA; variance explained by each component is shown on the axis label. }
+\caption[\gls{pca} of miRNA modality]{\gls{pca} of miRNA feature space ($n = 107$; 200 \gls{mad}-selected mature miRNAs; log\textsubscript{2}(RPM + 1)); Left: PC1 versus PC2. \gls{pc} variance contributions shown on axis labels. Right: cumulative variance explained by top principal components.}
+\label{fig:pca_mirna}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{figures/separability/pca_separability_methylation.pdf}
-\caption[Principal component analysis of methylation modality]{Left figure shows PC1 versus PC2 for methylation; variance explained by each component is shown on the axis label. }
+\caption[\gls{pca} of \gls{dna} methylation modality]{\gls{pca} of \gls{dna} methylation feature space ($n = 76$; 2,000 \gls{mad}-selected HumanMethylation450 probes; beta values). Left: PC1 versus PC2. \gls{pc} variance contributions shown on axis labels. Right: cumulative variance explained by top principal components.}
+\label{fig:pca_meth}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{figures/separability/pca_separability_rppa.pdf}
-\caption[Principal component analysis of RPPA modality]{Left figure shows PC1 versus PC2 for RPPA; variance explained by each component is shown on the axis label. }
+\caption[\gls{pca} of \gls{rppa} modality]{\gls{pca} of \gls{rppa} feature space ($n = 112$; 238 antibodies). Left: PC1 versus PC2. \gls{pc} variance contributions shown on axis labels. Right: cumulative variance explained by top principal components.}
+\label{fig:pca_rppa}
 \end{figure}
-
 
 
 \section{Performance Across Omics Modalities}
