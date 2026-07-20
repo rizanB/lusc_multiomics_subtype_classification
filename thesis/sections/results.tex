@@ -257,6 +257,7 @@ subtype-specific enrichment at these frequencies is limited by the current cohor
 Prior to supervised classification, geometric separability of the four \gls{lusc} molecular subtypes was assessed for each omics feature space using \gls{pca}, Silhouette scoring, and \gls{permanova}.
 
 \subsection{Dimensionality Structure}
+\label{subsec:dim_structure}
 
 The number of principal components required to explain 80\% of cumulative variance varied substantially across platforms, reflecting differences in feature covariance structure across omics modalities. Gene expression (n=178, 2000 genes) required the highest number of (62 PCs; PC1 = 12.3\% variance), consistent with transcriptional variation being distributed diffusely across thousands of co-regulated gene programs. miRNA (n=107, 200 features) required 30 components (PC1 = 16.6\% variance) and \gls{rppa} (n=112, 238 proteins) required 27 components (PC1 = 16.4\% variance). In contrast, \gls{dna} methylation (n=76, 2000 probes) required only 11 components to reach 80\% variance, with PC1 explaining an unusually high 57.7\% of total variance. This likely represents genome-wide methylation differences between samples, analogous to \gls{cimp}-like methylation architecture reported in squamous carcinomas. CNV (n=178, 2000 genes) was the most compact of all modalities, requiring only 5 components (PC1 = 44.7\%; PC2 = 20.8\%), reflecting coarse-chromosal-arm-scale nature of copy number events relative to gene-level expression or methylation variation.
 
@@ -297,6 +298,7 @@ The number of principal components required to explain 80\% of cumulative varian
 
 
 \subsection{Subtype Separability}
+\label{subsec:subtype_sep}
 
 \textbf{\gls{permanova}.} All modalities produced statistically significant subtype group separation by \gls{permanova} (p $\leq$ 0.005 in all cases; Table~\ref{tab:dataset_sep_summary}), indicating that subtype group centroids are distinguishable from random label permutations across every omics platform. Gene expression showed the strongest centroid separation (pseudo-$F = 8.997$, $p \leq 0.001$), followed by CNV (pseudo-$F = 6.759$, $p \leq 0.001$), miRNA (pseudo-$F = 5.191$, $p \leq 0.001$), RPPA (pseudo-$F = 3.935$, $p \leq 0.001$), and methylation (pseudo-$F = 3.491$, $p = 0.005$).
 
@@ -360,15 +362,16 @@ Per-modality \gls{pca} scatter plots for each of the five omics modalities are s
 \end{figure}
 
 
-\section{Performance Across Omics Modalities}
+\section{Classification Performance Across Omics Modalities}
 \label{subsec:omics_perf}
 
-\section{SHAP Feature Importance and Stability}
+Having established that the four subtypes occupy statistically distinct positions in each omics feature space (PERMANOVA $p \le 0.005$; described in Section~\ref{subsec:subtype_sep}), supervised classification was performed on the molecular subtypes.
+
+\section{Interpretability Analysis}
+
+\subsection{SHAP Feature Importance and Stability}
 
 % pairwise-jaccard similarity
-\section{Cross-Model Feature Overlap}
+\subsection{Cross-Model Feature Overlap}
 
-\section{Cross-Modality Feature Overlap}
-
-\section{Pathway Enrichment}
-
+\subsection{Cross-Modality Overlap and Pathway Enrichment}
