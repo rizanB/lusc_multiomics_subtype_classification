@@ -114,7 +114,7 @@ For \gls{cnv}, GISTIC2-thresholded discrete values on the integer scale $\{-2, -
 \end{figure}
 
 % argument: lusc subtypes have distinct clinical and biological properties, establishing clinical relevance of classification target, checking if subtype-sp signal exists in data.. 
-\section{In silico Phenotypic Characterisation of LUSC Subtypes}
+\section{In silico Characterisation of LUSC Subtypes}
 \label{sec:in_silico_phenotyping}
 
 To establish the biological validity and clinical relevance of downstream classification, the LUSC molecular subtypes were characterised across three independent axes: clinical outcome (Section~\ref{subsec:clinical_characteristics}), tumour immune microenvironment composition (Section~\ref{subsec:immune_microenvironment}), and somatic mutation landscape (Section~\ref{subsec:somatic_mutation}). These analyses are performed prior to any supervised modelling and are independent of the omics feature spaces used for classification.
@@ -365,7 +365,62 @@ Per-modality \gls{pca} scatter plots for each of the five omics modalities are s
 \section{Classification Performance Across Omics Modalities}
 \label{subsec:omics_perf}
 
-Having established that the four subtypes occupy statistically distinct positions in each omics feature space (PERMANOVA $p \le 0.005$; described in Section~\ref{subsec:subtype_sep}), supervised classification was performed on the molecular subtypes.
+Having established that the four subtypes occupy statistically distinct positions in each omics feature space (PERMANOVA $p \le 0.005$; described in Section~\ref{subsec:subtype_sep}), supervised classification was performed on the molecular subtypes. Five classifiers were trained on each omics modality using 5-fold cross-validation, and performance was evaluated using macro-averaged F1 score, precision, and recall. Classification performance varied substantially across modalities, with gene expression providing strongest subtype-discriminative signal and copy number variation the weakest.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/multiomics/performance_macro_f1_by_modality.pdf}
+\caption[Macro F1 performance across omics modalities]{Macro F1 performance of five classifiers for \gls{lusc} molecular subtype prediction. Panels show omics modalities; bars show the mean across five outer cross-validation folds and error bars show standard deviation across folds. Macro F1 was selected asthe primary metric because it assigns equal weight to each subtype. Blue shades denote linear or margin-based models (LR, EN, and SVM), and orange shades denote tree-based models (RF and XGB). Dashed line marks random-chance performance for four-class classification (0.25).}
+\label{fig:performance_macro_f1}
+\end{figure}
+
+Gene expression achieved the highest macro F1 across all models, with SVM performing best (mean accuracy: 0.814 $\pm$ 0.057; macro F1: 0.776 $\pm$ 0.072), followed closely by EN (accuracy: 0.803 $\pm$ 0.051; macro F1: 0.770 $\pm$ 0.057) and LR (accuracy: 0.792 $\pm$ 0.058; macro F1: 0.749 $\pm$ 0.083). Tree-based models also performed above 0.70 macro F1 on gene expression, but did not exceed the best linear/margin-based models. Friedman test did not identify statistically significant model differences within gene expression (p = 0.451), indicating that the gene expression subtypes were identified robustly regardless of classifier choice.
+
+\gls{mirna} expression was the second-best performing modality, with EN achieving the highest macro F1 (accuracy: 0.730 $\pm$ 0.099; macro F1: 0.664 $\pm$ 0.103), followed by LR and SVM. In contrast, RF and XGB underperformed on this modality. Friedman test was significant for \gls{mirna} (p = 0.002), and Nemenyi post-hoc testing showed that EN significantly outperformed RF (p = 0.041) and XGB (p = 0.006), suggesting that \gls{mirna}'s compact feature space favored regularised linear classification.
+
+RPPA and \gls{dna} methylation showed moderate classification performance. For RPPA, SVM achieved  highest macro F1 (0.581 $\pm$ 0.103), while LR achieved similar accuracy and macro F1 (0.574 $\pm$ 0.041). For methylation, LR performed best (accuracy: 0.632 $\pm$ 0.052; macro F1: 0.566 $\pm$ 0.065). Performance differences across classifiers were not statistically significant for RPPA (Friedman p = 0.891) or methylation (Friedman p = 0.818), consistent with smaller cohort sizes and higher fold-to-fold variance.
+
+Copy number variation was the weakest modality across all five classifiers, with macro F1 ranging from 0.271 (LR) to 0.366 (RF and XGB), only modestly above the chance level of 0.25 for a four-class problem. Although Friedman test was significant for CNV (p = 0.020), no pairwise comparisons survived Nemenyi post-hoc correction. Poor overall CNV performance indicates that GISTIC2-thresholded copy number profiles do not resolve the established expression-defined \gls{lusc} subtypes as strongly as transcriptomic, \gls{mirna}, methylation, or protein data.
+
+Precision, recall, and F1 were calculated from pooled out-of-fold predictions for the best macro-F1 model in each modality (Figure~\ref{fig:performance_subtype_metrics}). Classical was the most consistently recovered subtype, with recall ranging from 0.63 (RPPA) to 0.95 (gene expression). Primitive classification was more variable, with F1 score ranging from 0.68 (for gene expression) to 0.74 (for methylation), even falling to 0.41 (for RPPA) and 0.09 (for CNV). Methylation showed strong discriminative performance for primitive subtypes but provides limited generalisability because only 11 samples were available for that modality.
+
+Poor basal recall for methylation (0.21) and weak CNV performance were observed across all subtypes.
+
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/multiomics/performance_subtype_metrics.pdf}
+\caption[Subtype-specific precision, recall, and F1 across modalities]{Subtype-specific precision, recall, and F1 for the best macro-F1 classifier in each modality: gene expression (SVM), \gls{mirna} (EN), RPPA (SVM), \gls{dna} methylation (LR), and CNV (RF). Scores were calculated from pooled out-of-fold predictions across the five validation folds.}
+\label{fig:performance_subtype_metrics}
+\end{figure}
+
+\begin{table}[ht]
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\caption[Model performance across omics modalities]{Mean accuracy and macro F1 ($\pm$ standard deviation, 5-fold cross-validation) for all classifiers across five omics modalities. Values are shown as accuracy/macro F1 $\pm$ standard deviation of macro F1.}
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccccc}
+    \toprule
+    \textbf{Modality} & \textbf{n} & \textbf{LR} & \textbf{EN} & \textbf{SVM} & \textbf{RF} & \textbf{XGB} \\
+    \midrule
+    Gene Expression & 178 & 0.792/0.749 $\pm$ 0.083 & 0.803/0.770 $\pm$ 0.057 & \textbf{0.814/0.776 $\pm$ 0.072} & 0.803/0.750 $\pm$ 0.110 & 0.758/0.716 $\pm$ 0.090 \\
+    miRNA & 107 & 0.712/0.620 $\pm$ 0.095 & \textbf{0.730/0.664 $\pm$ 0.103} & 0.702/0.616 $\pm$ 0.038 & 0.637/0.470 $\pm$ 0.063 & 0.506/0.384 $\pm$ 0.083 \\
+    RPPA & 112 & 0.633/0.574 $\pm$ 0.041 & 0.615/0.527 $\pm$ 0.045 & \textbf{0.607/0.581 $\pm$ 0.103} & 0.606/0.553 $\pm$ 0.127 & 0.571/0.554 $\pm$ 0.080 \\
+    Methylation & 76 & \textbf{0.632/0.566 $\pm$ 0.065} & 0.565/0.480 $\pm$ 0.095 & 0.617/0.557 $\pm$ 0.172 & 0.578/0.515 $\pm$ 0.151 & 0.538/0.438 $\pm$ 0.201 \\
+    CNV & 178 & 0.326/0.271 $\pm$ 0.064 & 0.365/0.281 $\pm$ 0.042 & 0.421/0.314 $\pm$ 0.029 & \textbf{0.438/0.366 $\pm$ 0.072} & \textbf{0.416/0.366 $\pm$ 0.067} \\
+    \bottomrule
+\end{tabular}
+}
+\label{tab:model_performance_summary}
+\end{table}
+
+\section{Subtype-Specific Classification Patterns}
+
+Pooled confusion matrices revealed performance differences across the four \gls{lusc} molecular subtypes. Across the most predictive modalities (gene expression, \gls{mirna}, and RPPA), classical subtype was consistently the most accurately classified. Classical recall, for instance, reached 0.95 in the gene expression SVM and 0.82 in the \gls{mirna} EN model. This suggests that the xenobiotic metabolism and oxidative stress signatures associated with the classical subtype are comparatively distinct and are detectable across multiple molecular layers.
+
+In contrast, the primitive and basal subtypes were frequently misclassified. In the gene expression-SVM model, primitive subtype recall was 0.56, with several primitive cases classified as basal or classical. This weaker boundary may reflect shared biological characteristics, including proliferation and differentiation-related programs, that are not fully separable in the available sample size.
+
 
 \section{Interpretability Analysis}
 
