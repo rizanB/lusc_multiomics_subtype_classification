@@ -1,38 +1,90 @@
 \chapter{METHODS}
 \label{chap:methods}
-This chapter describes the computational workflow used to retrieve, process and utilise omics data to classify established \gls{lusc} molecular subtypes and to interpret the molecular features driving classification.
+This chapter describes the computational workflow used to retrieve, process and analyse multi-omics data for \gls{lusc} molecular subtype classification and biological interpretation. The pipeline comprises five stages: data acquisition and cohort assembly (Section~\ref{sec:data_acquisition_method}), modality-specific preprocessing (Section~\ref{sec:omics_preprocessing_method}), in silico characterisation of subtypes (Section~\ref{sec:in_silico_char_method}), dimensionality analysis and subtype separability assessment (Section~\ref{sec:dataset_sep_method}), supervised classification (Section~\ref{sec:classification_method}), and interpretability analysis (Section~\ref{sec:interpretability_method}).
+
 
 % TODO: add a cohort assembly tikz figure
 
 \section{Data Acquisition and Label Matching}
-\label{subsec:data_acquisition}
+\label{sec:data_acquisition_method}
 
-Matched omics data for the \gls{tcga}-\gls{lusc} cohort were retrieved through the UCSC Xena Platform \parencite{Goldman2020}, which hosts processed \gls{tcga} data harmonised from original \gls{tcga} releases.
+Matched omics data for the \gls{tcga}-\gls{lusc} cohort were retrieved through the UCSC Xena Platform \parencite{Goldman2020}, which hosts processed \gls{tcga} data harmonised from original \gls{tcga} releases. Following datasets were retrieved: (i) gene expression by \gls{rnaseq} (IlluminaHiSeq RNASeqV2, log\textsubscript{2}(\gls{rsem}$+1$)-normalised); (ii) \gls{dna} methylation (HumanMethylation450 Illumina Infinium array, Level 3 beta values); (iii) miRNA expression (IlluminaGA miRNASeq, log\textsubscript{2}(RPM$+1$)); (iv) copy number variation (GISTIC2 all-thresholded calls, integer scale $\{-2, -1, 0, 1, 2\}$); and (v) \gls{rppa} (\gls{mdacc}, normalised protein abundance).
+
+Molecular subtype labels (classical, secretory, basal, primitive) were derived from the original \gls{tcga} \gls{lusc} characterisation studies \parencite{Wilkerson2010, Hammerman2012}. Sample identifiers in each omics matrix were harmonised to the 12-character \gls{tcga} patient barcode format by trimming the sample and vial suffix (e.g., \texttt{TCGA-18-3406-01} $\to$ \texttt{TCGA-18-3406}). Where multiple samples from same patient were present following trimming (due to technical replicates or multiple tumour regions), first occurrence was retained, consistent with standard \gls{tcga} data processing practice. Only samples with both available omics data and a matching subtype label were retained. Final per-modality cohort sizes are summarised in Table~\ref{tab:omics_summary}.
+
 
 \section{Omics Preprocessing}
-\label{subsec:omics_preprocessing}
+\label{sec:omics_preprocessing_method}
 
-Preprocessing was performed separately for each modality to preserve the native scale and biological specific to respective platforms.
+Preprocessing was performed separately for each modality (labeled cohort only) to preserve the native scale and biological specific to respective platforms.
 
 \subsection{Gene Expression}
-RSEM-normalised read counts were provided in $\log_2(x+1)$-transformed form and required no additional normalisation. Genes with median $\log_2$ expression below 1.0 across all samples were removed as unexpressed. The 2,000 most variable genes were then selected by \gls{mad} filtering.
+\gls{rsem}-normalised read counts were provided in $\log_2(x+1)$-transformed form and required no additional normalisation. Genes with median $\log_2$ expression below 1.0 across all samples were removed as unexpressed. The 2,000 most variable genes were then selected by \gls{mad} filtering, which is preferred over standard deviation filtering due to the former's robustness to outliers.
 
 \subsection{\gls{dna} Methylation}
-Level 3 beta values, representing the ratio of methylated to total probe intensity and ranging from 0 to 1, were used directly. CpG probes missing in more than 20\% of samples were removed, and remaining missing values were imputed using the per-probe median. Probes with standard deviation below 0.05 were removed as near-invariant, and the top 2,000 most variable probes were retained by \gls{mad}. For downstream gene-level interpretation, CpG probe IDs were mapped to gene symbols using Illumina HumanMethylation450 annotation; probes beginning with ``rs'' were treated as SNP probes and excluded from methylation-specific biological interpretation.
+Level 3 beta values, representing the ratio of methylated to total probe intensity and ranging on the interval $[0,1]$, were used directly without transformation. Probes missing in more than 20\% of samples were removed, and remaining missing values were imputed using the per-probe median across the labeled cohort. Probes with standard deviation below 0.05 were removed as near-invariant. This threshold is lower than the 0.01 threshold applied for count-based modalities to account for the bounded $[0, 1]$ scale of beta values, which inherently compresses absolute variability. The top 2,000 most variable probes were retained by \gls{mad}. For downstream gene-level interpretation, \gls{cpg} probe identifiers were mapped to gene symbols using Illumina HumanMethylation450 annotation; probes beginning with ``rs'' were treated as SNP probes and excluded from methylation-specific biological interpretation.
 
 \subsection{\gls{mirna} Expression}
-$\log_2(\mathrm{RPM}+1)$-transformed \gls{mirna} expression values were used without further normalisation. Missing values in this data type indicate zero reads (RPM = 0), and were therefore filled with zero rather than imputed. \gls{mirna}s missing in more than 50\% of samples were removed, followed by low-expression filtering (median $\log_2(\mathrm{RPM}+1) < 1.0$) and \gls{mad} filtering to retain 200 most variable mature \gls{mirna}s.
+$\log_2(\mathrm{RPM}+1)$-transformed \gls{mirna} expression values were used without further normalisation. Missing values in this data type indicate zero reads (RPM = 0), and were therefore assigned a value of zero rather than imputed, preserving the biological interpretation of non-detection. \gls{mirna}s missing in more than 50\% of samples were removed. This permissive threshold was applied to account for tissue-specific and context-dependent expression of miRNAs where absence is frequently biological rather than technical. Low-expression filtering (median $\log_2(\mathrm{RPM}+1) < 1.0$) was then applied 200 most variable mature \gls{mirna}s were retained by \gls{mad} filtering.
 
 \subsection{Copy Number Variation}
-GISTIC2-thresholded discrete copy number values (integer scale: $-2, -1, 0, 1, 2$) were used directly. No normalisation was applied because the data encode categorical copy number states. Zero-variance genes were checked. The top 2,000 most variable genes were retained by \gls{mad}.
+GISTIC2-thresholded discrete copy number values (integer scale: $-2, -1, 0, 1, 2$) were used directly. No normalisation was applied because the data encode categorical copy number states. Zero-variance genes across all samples were checked and removed (none were found). The top 2,000 most variable genes were retained by \gls{mad}.
 
 \subsection{RPPA}
-Normalised RPPA protein abundance values were used directly. Proteins missing in more than 20\% of samples were removed, and remaining missing values were imputed using the per-protein median. No additional \gls{mad} filtering was applied because the post-imputation feature count was already appropriate for the available sample size.
+Normalised RPPA protein abundance values were used directly. Antibodies missing in more than 20\% of samples were removed. Remaining missing values, reflecting sparse antibody-level quantification failures, were imputed using the per-antibody median. No \gls{mad} filtering was applied as the post-imputation feature count (n=238) was already appropriate for the available sample size.
 
-\section{Dataset Separability}
-Principal component analysis (PCA) was performed on each omics modality separately to characterise the geometric separability of the subtypes within each feature space. StandardScaler normalisatin was applied to each modality, and minimum number of principal components explaining \geq 80\% of cumulative variance was determined. 
+% argument: lusc subtypes have distinct clinical and biological properties, establishing clinical relevance of classification target, checking if subtype-sp signal exists in data.. 
+\section{In silico Characterisation of LUSC Subtypes}
+\label{sec:in_silico_char_method}
+
+Prior to supervised classification, the four \gls{lusc} molecular subtypes were characterised across three independent biological axes to establish the clinical relevance and biological non-redundancy of the classification target.
+
+\subsection{Clinical Survival Analysis}
+\label{sec:clinical_method}
+
+Overall survival (\gls{os}) and progression-free interval (\gls{pfi}) were retrieved from the \gls{tcga} Clinical Data Resource, which provides curated endpoint definitions harmonised across \gls{tcga} cohorts. \gls{pfi} was designated as the primary endpoint for \gls{lusc} according to the recommendations of the \gls{tcga} Clinical Data Resource, which identifies \gls{pfi} as a more reliable surrogate for disease progression than \gls{os} in \gls{lusc} \parencite{Liu2018integrated}. Kaplan-Meier survival curves were estimated separately for each molecular subtype, and Brookmeyer-Crowley method was used to compute 95\% confidence intervals for median survival. Global log-rank tests were applied to test the null hypothesis of no difference in survival across the four subtypes. Cox proportional hazards regression was performed with the classical subtype as the reference category; hazard ratios and their 95\% confidence intervals are reported. Proportional hazards assumption was assessed using scaled Schoenfeld residuals implemented via \texttt{cox.zph}. 
+
+All survival analyses were performed using \texttt{survival} and \texttt{survminer} packages.
+
+\subsection{Immune Microenvironment Characterisation}
+\label{sec:tme_method}
+
+Tumour immune microenvironment composition was estimated from bulk gene expression data using two complementary deconvolution methods, following the method selection benchmarking of Sturm \textit{et al.} \parencite{Sturm2019}.
+
+
+EPIC \parencite{Racle2017} was used for absolute cell-fraction estimation. EPIC deconvolves bulk expression data into cell-type-specific fractions using a non-negative least squares approach with reference gene expression profiles, yielding estimates for \gls{cd4} T cells, \gls{cd8} T cells, B cells, NK cells, macrophages, \gls{caf}s, endothelial cells, and an uncharacterised remainder (\textit{otherCells}).
+ 
+xCell \parencite{Aran2017-xcell} was used as an independent method to derive gene set enrichment-based scores for a broader panel of immune and stromal cell types. xCell scores represent relative enrichment and are not directly comparable across cell types or to EPIC fractions; and were used to characterise cell types not covered by EPIC.
+ 
+Differences in cell-type fractions or enrichment scores across the four molecular subtypes were assessed using the Kruskal-Wallis test, with Benjamini-Hochberg correction for multiple comparisons applied across all tested cell types. 
+
+Analyses were performed using \texttt{EPIC} and \texttt{xCell} packages.
+
+\subsection{Somatic Mutation Characterisation}
+\label{subsec:somatic_mutation_method}
+ 
+Somatic mutation data for \gls{tcga}-\gls{lusc} were retrieved in \gls{maf} format from the \gls{tcga} data portal and analysed using the \texttt{maftools} package \parencite{Mayakonda2018maftools}. A curated panel of 11 \gls{lusc} driver genes was constructed based on recurrently altered genes reported in the original \gls{tcga} \gls{lusc} characterisation \parencite{Hammerman2012} and established squamous lineage markers: \textit{TP53}, \textit{NFE2L2}, \textit{KEAP1}, \textit{RB1}, \textit{PTEN}, \textit{CDKN2A}, \textit{PIK3CA}, \textit{SOX2}, \textit{FGFR1}, \textit{TGM1}, and \textit{KRT75}. Alteration frequencies were computed across all samples with available mutation data and visualised as an oncoprint annotated by molecular subtype. Tumour mutational burden was computed as the total number of non-synonymous somatic mutations per sample. Differences in \gls{tmb} across subtypes were assessed using Kruskal-Wallis test.
+
+
+\section{Dimensionality Structure and Subtype Separability}
+\label{sec:dataset_sep_method}
+Principal component analysis (PCA) was performed on each omics modality separately to characterise the geometric separability of the subtypes within each feature space. StandardScaler normalisation was applied to each modality, and minimum number of principal components explaining $\geq$ 80\% of cumulative variance was determined. 
 
 % TODO: cite scipy.stats library here, as i used squareform for euclidean distance thing.. other methods too.
 % TODO: cite Rousseeuw, 1987 for silhouette score.  
 % TODO: cite (Anderson, 2001) for permanova.  
-Separability of subtypes was quantified using two complementary measures. The silhouette score was computed on the 80\%-variance PCA subspace, providing a sample-level measure of cluster cohesion and separation ranging from -1 (misassigned) to +1 (well-separated). Per-subtype mean silhouette scores were computed to identify subtypes with differential cluster membership. PERMANOVA with 999 permutations was applied to the same PCA subspace to test the null hypothesis that subtype group centroids are statistically indistinguishable from permuted label assignments; (pseudo-F statistic; permutation p-value). PCA projections were visualised on PC1 and PC2 with 95\% confidence ellipses (n_std = 2.0) and subtype centroids.
+Geometric separability of subtypes was quantified using two complementary measures. The silhouette score was computed on the 80\%-variance PCA subspace, providing a sample-level measure of cluster cohesion and separation ranging from -1 (misassigned) to +1 (well-separated). Per-subtype mean silhouette scores were computed to identify subtypes with differential cluster membership. PERMANOVA with 999 permutations was applied to the same PCA subspace to test the null hypothesis that subtype group centroids are statistically indistinguishable from permuted label assignments; (pseudo-F statistic; permutation p-value). PCA projections were visualised on PC1 and PC2 with 95\% confidence ellipses (n\_std = 2.0) and subtype centroids.
+
+
+\section{Machine Learning Classification}
+
+\section{Subtype-Specific Classification}
+
+\section{Interpretability Analysis and Biological Significance}
+\label{sec:interpretability_method}
+
+\section{Reproducibility}
+
+Source code for training scripts and analyses is available on GitHub at: \url{https://github.com/rizanB/lusc_multiomics_subtype_classification}. Datasets used in this study are publicly available from TCGA-\gls{lusc} through UCSC Xena. Details of software dependencies, package versions, and system configuration are provided in Appendix~\ref{app:software}.
+
+
