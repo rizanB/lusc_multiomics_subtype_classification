@@ -10,7 +10,7 @@ This chapter describes the computational workflow used to retrieve, process and 
 
 Matched omics data for the \gls{tcga}-\gls{lusc} cohort were retrieved through the UCSC Xena Platform \parencite{Goldman2020}, which hosts processed \gls{tcga} data harmonised from original \gls{tcga} releases. Following datasets were retrieved: (i) gene expression by \gls{rnaseq} (IlluminaHiSeq RNASeqV2, log\textsubscript{2}(\gls{rsem}$+1$)-normalised); (ii) \gls{dna} methylation (HumanMethylation450 Illumina Infinium array, Level 3 beta values); (iii) miRNA expression (IlluminaGA miRNASeq, log\textsubscript{2}(RPM$+1$)); (iv) copy number variation (GISTIC2 all-thresholded calls, integer scale $\{-2, -1, 0, 1, 2\}$); and (v) \gls{rppa} (\gls{mdacc}, normalised protein abundance).
 
-Molecular subtype labels (classical, secretory, basal, primitive) were derived from the original \gls{tcga} \gls{lusc} characterisation studies \parencite{Wilkerson2010, Hammerman2012}. Sample identifiers in each omics matrix were harmonised to the 12-character \gls{tcga} patient barcode format by trimming the sample and vial suffix (e.g., \texttt{TCGA-18-3406-01} $\to$ \texttt{TCGA-18-3406}). Where multiple samples from same patient were present following trimming (due to technical replicates or multiple tumour regions), first occurrence was retained, consistent with standard \gls{tcga} data processing practice. Only samples with both available omics data and a matching subtype label were retained. Final per-modality cohort sizes are summarised in Table~\ref{tab:omics_summary}.
+Molecular subtype labels (classical, secretory, basal, primitive) were derived from the original \gls{tcga} \gls{lusc} characterisation studies \parencite{Wilkerson2010, Hammerman2012}. Sample identifiers in each omics matrix were harmonised to the 12-character \gls{tcga} patient barcode format by trimming the sample and vial suffix (e.g., \texttt{TCGA-18-3406-01} $\to$ \texttt{TCGA-18-3406}). Where multiple samples from same patient were present following trimming (due to technical replicates or multiple tumour regions), first occurrence was retained, consistent with standard \gls{tcga} data processing practice. Only samples with both available omics data and a matching subtype label were retained.
 
 
 \section{Omics Preprocessing}
@@ -77,10 +77,40 @@ Geometric separability of subtypes was quantified using two complementary measur
 
 
 \section{Machine Learning Classification}
+\label{sec:ml_classification_method}
 
-\section{Subtype-Specific Classification}
+Five classifiers- logistic regression (\gls{lr}), elastic net penalised logistic regression (\gls{en}), support vector machine (\gls{svm}), random forest (\gls{rf}), and XGBoost (\gls{xgb}) were evaluated on each omics modality. 
 
-\section{Interpretability Analysis and Biological Significance}
+\subsection{Feature Scaling}
+ 
+Linear and margin-based classifiers (\gls{lr}, \gls{en}, \gls{svm}) were trained on \texttt{StandardScaler}-normalised features. The scaler was fitted on the training portion of each outer fold and applied to both training and validation portions, preventing data leakage from the validation set into the normalisation parameters. Tree-based classifiers (\gls{rf}, \gls{xgb}) are invariant to monotone feature transformations and didn't require scaling.
+
+\subsection{Classifiers}
+All classifiers were implemented in Python using \texttt{scikit-learn} \parencite{Pedregosa2011} for \gls{lr}, \gls{en}, \gls{svm}, and \gls{rf}, and the \texttt{xgboost} library \parencite{Chen2016} for \gls{xgb}. All experiments used \texttt{random\_state = 42} for reproducibility.
+
+\gls{lr} was fitted with L2 regularisation (\texttt{solver = lbfgs}; \texttt{max\_iter = 5000}). \gls{en} combines L1 and L2 penalties via the \texttt{saga} solver, with the regularisation strength ($C$) and mixing parameter (\texttt{l1\_ratio}) optimised by nested cross-validation (see Section~\ref{subsec:cv_method}). \gls{svm} was evaluated with linear and radial basis function (\gls{rbf}) kernels; \texttt{decision\_function\_shape = ovr} was used to implement one-versus-rest multiclass decomposition. \gls{rf} was configured with \texttt{class\_weight = `balanced'} to address class imbalance. \gls{xgb} used the \texttt{multi:softmax} objective with four output classes; class imbalance was addressed by computing per-class sample weights inversely proportional to class frequency and passing these as \texttt{sample\_weight} to the \texttt{fit} call, as \gls{xgb} does not support \texttt{class\_weight} parameter natively.
+
+
+\subsection{Cross-Validation and Hyperparameter Selection}
+\label{subsec:cv_method}
+ 
+Model evaluation was performed using stratified 5-fold cross-validation (\texttt{sklearn.model\_selection.StratifiedKFold}; \texttt{shuffle = True}; \texttt{random\_state = 42}), to ensure proportional representation of each subtype in every fold. No separate held-out test set was used as a hold-out split would further reduce the training set and likely degrade model performance and increase fold-level variance because per-modality cohort sizes ranged from 76 to 178 samples. Pooled out-of-fold predictions across the five validation folds were used to compute confusion matrices and per-subtype classification reports.
+ 
+Hyperparameter selection was performed using nested inner 3-fold cross-validation applied exclusively to the training portion of each outer fold. The selection criterion was macro-averaged F1 score. Hyperparameter search spaces for each classifier are summarised in Appendix~\ref{app:hyperparam}. 
+
+
+\subsection{Evaluation Metrics}
+ 
+Classification performance is reported as mean $\pm$ standard deviation of accuracy and macro-averaged F1 score across the five outer folds. Macro F1 was chosen as the primary metric because it assigns equal weight to each of the four subtype classes, penalising models that achieve high overall accuracy by predicting frequent classes (classical, $n = 29$--$65$) at the expense of rare classes (primitive, $n = 11$--$27$). Per-subtype precision, recall, and F1 were computed from pooled out-of-fold predictions for the best-performing model per modality (selected by mean macro F1 across folds).
+
+
+\subsection{Statistical Comparison of Classifiers}
+ 
+Differences in macro F1 across the five classifiers within each modality were assessed using the Friedman test, a non-parametric test for repeated measures applied to the per-fold F1 scores (five observations per classifier). Where the Friedman test was significant ($p < 0.05$), Nemenyi post-hoc pairwise comparisons were performed using the \texttt{scikit-posthocs} library, with Bonferroni-Holm correction for multiple comparisons. Pairwise modality comparisons were
+assessed using the Wilcoxon signed-rank test applied to per-fold macro F1 scores. Given that $n = 5$ folds yields a minimum achievable $p$-value of 0.0625 for the Wilcoxon test, effect sizes ($r = Z / \sqrt{N}$) are reported alongside $p$-values as the primary indicator of practical significance.
+
+
+\section{Interpretability Analysis}
 \label{sec:interpretability_method}
 
 \section{Reproducibility}

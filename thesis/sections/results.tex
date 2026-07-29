@@ -19,7 +19,7 @@ the clinical, immunological, and genomic properties of the subtypes, establishin
 
 %TODO: refer to methods for dataset retrieval method.. cant think of suitable phrasing rn
 
-TCGA-LUSC datasets for five modalities were retrieved and matched to molecular subtype labels (described in Section~\ref{subsec:data_acquisition}). Gene expression and \gls{cnv} retained the full labelled 178-sample cohort following patient identifier harmonisation, whereas \gls{dna} methylation, \gls{mirna} expression and \gls{rppa} had smaller assay overlap resulting in cohorts of 76, 107, and 112 labelled samples respectively (Table~\ref{tab:omics_summary}). Differences in cohort size across modalities reflects differences in assay coverage across
+TCGA-LUSC datasets for five modalities were retrieved and matched to molecular subtype labels (described in Section~\ref{sec:data_acquisition_method}). Gene expression and \gls{cnv} retained the full labelled 178-sample cohort following patient identifier harmonisation, whereas \gls{dna} methylation, \gls{mirna} expression and \gls{rppa} had smaller assay overlap resulting in cohorts of 76, 107, and 112 labelled samples respectively (Table~\ref{tab:omics_summary}). Differences in cohort size across modalities reflects differences in assay coverage across
 \gls{tcga} patients.
 
 Across all modalities, classical subtype was the most frequently represented class ($n = 29$-$65$ depending on modality) and primitive the least frequent ($n = 11$-$27$), motivating the use of macro-averaged classification metrics in subsequent analyses to ensure equal weighting of each subtype despite varying sample sizes.
@@ -46,7 +46,7 @@ Across all modalities, classical subtype was the most frequently represented cla
 \section{Preprocessing Summary}
 \label{sec:preprocessing_summary}
 
-Modality-specific preprocessing was performed to respect the native data format and biological meaning of each assay (described in Section~\ref{subsec:omics_preprocessing}). The feature-retention summary is provided in Table~\ref{tab:eda_preprocessing_summary}, and per-modality \gls{mad} distributions for retained and discarded features are shown in
+Modality-specific preprocessing was performed to respect the native data format and biological meaning of each assay (described in Section~\ref{sec:omics_preprocessing_method}). The feature-retention summary is provided in Table~\ref{tab:eda_preprocessing_summary}, and per-modality \gls{mad} distributions for retained and discarded features are shown in
 Figure~\ref{fig:eda_feature_variability}.
 
 \begin{figure}[H]

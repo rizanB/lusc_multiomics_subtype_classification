@@ -1,20 +1,37 @@
 \appendix
 \renewcommand{\chaptername}{APPENDIX}
-\chapter{APPENDICES}
+% \chapter{APPENDICES}
 \captionsetup{list=no} 
 
+\chapter{Hyperparameter Tuning}
+\label{app:hyperparam}
+\begin{itemize}
+    \item \textbf{LR}: $C = 1.0$; fixed (no inner search required)
+    \item \textbf{EN}: $C \in \{0.01, 0.1, 1.0, 10.0\}$; \texttt{l1\_ratio} $\in \{0.1, 0.5, 0.9\}$
+    \item \textbf{SVM}: $C \in \{0.01, 0.1, 1.0, 10.0\}$; \texttt{kernel} $\in \{\text{linear, RBF}\}$
+    \item \textbf{RF}: \texttt{n\_estimators} $\in \{100, 200, 500\}$; \texttt{max\_depth} $\in \{5, 10, \text{None}\}$
+    \item \textbf{XGB}: \texttt{n\_estimators} $\in \{100, 200, 300\}$; \texttt{max\_depth} $\in \{3, 5, 7\}$; \texttt{learning\_rate} $\in \{0.01, 0.1, 0.3\}$
+\end{itemize}
 
-\section{Software and System Configuration}
+\chapter{Software and System Configuration}
 \label{app:software}
 
 \subsection*{Python Environment and Packages}
 \begin{itemize}
     \item Python 3.13.14
+    \item \texttt{marimo} 0.22.4
+    \item \texttt{numpy} 2.4.4
+    \item \texttt{pandas} 2.3.3
+    \item \texttt{matplotlib} 3.10.8
+    \item \texttt{scikit-learn} 1.8.0
+    \item \texttt{scipy} 1.17.1
+    \item \texttt{seaborn} 0.13.2
+    \item \texttt{xgboost} 3.2.0
 \end{itemize}
 
 \subsection*{R Environment and Packages}
 \begin{itemize}
-    \item R 4.3.3 (2024:02:29)
+    \item R 4.3.3 (2024-02-29)
     \item RStudio 2026.05.1+225
 \end{itemize}
 
