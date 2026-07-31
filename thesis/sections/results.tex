@@ -424,7 +424,56 @@ In contrast, the primitive and basal subtypes were frequently misclassified. In 
 
 \section{Interpretability Analysis}
 
-\subsection{SHAP Feature Importance and Stability}
+\subsection{Subtype-Specific Feature Importance and Stability}
+
+Class-specific out-of-fold \gls{shap} values \parencite{Lundberg2017} were computed for gene expression, miRNA, and RPPA modalities to characterise the gene-level signals driving prediction for each individual subtype (Section~\ref{subsec:per_subtype_shap}).
+
+\subsubsection{Gene Expression} 
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/multiomics/subtype_shap_ge_signed_bars.pdf}
+\caption[Subtype-specific SHAP contributions for gene expression modality]{Subtype-specific SHAP contributions for gene expression modality. Y-axis denotes genes (features) and X-axis represents mean signed SHAP value.}
+\label{fig:subtype_shap_ge}
+\end{figure}
+
+Elastic net logistic regression (macro F1 = 0.770 $\pm$ 0.057) was used as the explanation model for gene expression in place of the highest-F1 SVM (macro F1 = 0.776), as exact class-specific additive attributions are available for linear models but not for \gls{rbf}-kernel SVMs. Fold stability for the top-20 per-subtype feature rankings ranged from 0.149 (classical, basal) to 0.202 (secretory): 15 to 20-fold above the random-expectation baseline of 0.01 for top-20 from 2,000 features, indicating that rankings reflect consistent signal rather than sampling artefacts, despite the small per-subtype held-out set sizes (minimum n=5 for primitive per fold).
+
+\textbf{Classical subtype.} \textit{GSTM2} (glutathione S-transferase mu 2), \textit{TSPAN7}, \textit{ADCY10}, \textit{SCN9A}, and \textit{SOST} contributed positively towards classical subtype identity (Figure~\ref{fig:subtype_shap_ge}). 
+
+% TODO: move to discussion soon
+% \textit{GSTM2} is known to be involved in xenobiotic metabolism and oxidative stress response and is a defining molecular marker of the classical subtype \parencite{Wilkerson2010}, providing direct biological validation that the model is exploiting genuine subtype-specific signal. 
+
+High \textit{GSTM2} expression (yellow points) is consistently associated with positive SHAP contributions toward the classical class (Figure~\ref{fig:subtype_shap_ge_beeswarm}). Negatively contributing features included \textit{ZFP57}, \textit{BHMT}, \textit{PCDHB5}, and \textit{PCDHB6}; \textit{ZFP57} is a KRAB-domain methylation-sensitive transcription factor, and the protocadherin genes (\textit{PCDHB5}, \textit{PCDHB6}) suggest that high expression of cell-adhesion programmes characteristic of the basal subtype suppresses the model's classical-class score.
+
+\textbf{Basal subtype.} \textit{IL1RN}, \textit{CLCA4}, \textit{IL12RB2}, \textit{POU3F1}, and \textit{CXCL1} contributed the most towards basal subtype identity. 
+
+% TODO: move to discussion later
+% \textit{CLCA4} (Calcium-activated chloride channel regulator 4) is expressed in squamous and basal epithelial cells and has been associated with squamous differentiation programmes, consistent with the basal subtype's keratin- and cell-adhesion-centred biology \parencite{Wilkerson2010}. 
+
+Immune-related genes \textit{IL1RN}, \textit{IL12RB2}, and \textit{CXCL1} suggest that the model additionally uses immune-related features to distinguish basal from the more immune-activated secretory subtype. 
+
+Negative contributors included \textit{FLG}, \textit{GPR15}, \textit{DDX11L2}, and \textit{PCSK2}.
+
+% TODO: note; move to discussion later
+% \textit{IL1RN}, in particular, can be produced by epithelial cells rather than immune cells. 
+
+\textbf{Secretory subtype.} \textit{ALPP} (alkaline phosphatase, liver/bone/kidney type) was the dominant positive contributor for the secretory class, with high expression in a subset of samples producing SHAP values up to approximately 0.5 in the beeswarm, considerably higher than the signed values in other subtypes, indicating that \textit{ALPP} acts as a particularly strong (but high-variance) marker. \textit{CPA6} (carboxypeptidase A6), \textit{WNT2B}, \textit{UBD}, and \textit{MYBPC2} also contributed positively. 
+
+% TODO: move to discussion
+% The presence of secretory enzymes like ALPP and CPA6 is consistent with the glandular and secretory biology, implying that the model's predictive power is rooted in abiology. 
+
+Negative contributors (\textit{ARSE}, \textit{CT45A1}, \textit{HIST1H4H}) include a cancer/testis antigen and a histone gene, suggesting that features associated with chromatin remodelling or proliferative programmes reduce the secretory class score.
+
+\textbf{Primitive subtype.} \textit{CD1A}, \textit{KIF1A}, \textit{S100A8}, \textit{AHNAK2}, and \textit{SERPINB7} contributed positively to the primitive subtype identity. 
+
+% TODO: move to discussion later.
+% \textit{S100A8} (Calprotectin S100A8 subunit) is a known immune activation marker expressed by myeloid cells in inflammatory tumour microenvironments, consistent with the primitive subtype's characterisation as the most immune-infiltrated and proliferative LUSC subtype \parencite{Wilkerson2010, Hammerman2012}. CD1A, involved in antigen presentation on dendritic cells and some epithelial lineages, further supports an immune-enriched context. 
+
+Negative contributors included \textit{RBP1}, \textit{LHX9}, \textit{WT1}, \textit{ABO}.
+
+% TODO; maybe move to discussion
+%  included two developmental transcription factors (\textit{LHX9}, \textit{WT1}) suggesting that programmes associated with squamous differentiation and lineage specification suppress the primitive class prediction. This is consistent with primitive tumours being defined by reduced differentiation rather than a positive lineage identity.
 
 % pairwise-jaccard similarity
 \subsection{Cross-Model Feature Overlap}

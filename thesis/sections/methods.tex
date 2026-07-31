@@ -113,6 +113,17 @@ assessed using the Wilcoxon signed-rank test applied to per-fold macro F1 scores
 \section{Interpretability Analysis}
 \label{sec:interpretability_method}
 
+\subsection{Per-subtype SHAP Feature Importance}
+\label{subsec:per_subtype_shap}
+
+To characterise the gene-level signals driving prediction for each individual subtype, class-specific out-of-fold \gls{shap} values \parencite{Lundberg2017} were computed for gene expression, miRNA, and RPPA. CNV was excluded because of near-chance classification performance (macro F1 = 0.366; Section~\ref{subsec:omics_perf}).
+
+For a given subtype $k$, signed SHAP contributions to the $k$-class model output were computed for all held-out samples whose \emph{true label} is subtype $k$, including samples that were misclassified (to prevent selection bias). The exact linear SHAP value for class $c$, feature $j$, and held-out sample $i$ is:
+\[
+\phi_{c,j}(i) = \hat{\theta}_{c,j} \cdot \bigl(x^{\text{scaled}}_{i,j} - \bar{x}^{\text{train}}_{j}\bigr)
+\]
+where $\hat{\theta}_{c,j}$ is the fitted coefficient for class $c$ and feature $j$, and $\bar{x}^{\text{train}}_{j}$ is the training-fold empirical mean. Additivity was verified per fold (maximum reconstruction error $< 10^{-8}$). Mean signed SHAP values across held-out samples with true label $k$ summarise the average contribution of each feature to the model's $k$-class log-odds. Per-subtype fold stability was quantified as the mean pairwise Jaccard similarity of the top-20 feature rankings across all $\binom{5}{2} = 10$ fold pairs, computed separately for each subtype. Since random Jaccard for top-20 features from 2,000 candidates is approximately $20/2,000 = 0.01$, observed values substantially above this baseline indicate stability above random. Results were visualised as signed bar charts (mean contribution per feature) and beeswarm plots (per-sample contributions colored by relative feature value within subtype).
+
 \section{Reproducibility}
 
 Source code for training scripts and analyses is available on GitHub at: \url{https://github.com/rizanB/lusc_multiomics_subtype_classification}. Datasets used in this study are publicly available from TCGA-\gls{lusc} through UCSC Xena. Details of software dependencies, package versions, and system configuration are provided in Appendix~\ref{app:software}.
