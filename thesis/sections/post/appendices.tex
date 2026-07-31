@@ -13,17 +13,21 @@
 \label{fig:subtype_shap_ge_beeswarm}
 \end{figure}
 
-\chapter{Hyperparameter Tuning}
-\label{app:hyperparam}
-\begin{itemize}
-    \item \textbf{LR}: $C = 1.0$; fixed (no inner search required)
-    \item \textbf{EN}: $C \in \{0.01, 0.1, 1.0, 10.0\}$; \texttt{l1\_ratio} $\in \{0.1, 0.5, 0.9\}$
-    \item \textbf{SVM}: $C \in \{0.01, 0.1, 1.0, 10.0\}$; \texttt{kernel} $\in \{\text{linear, RBF}\}$
-    \item \textbf{RF}: \texttt{n\_estimators} $\in \{100, 200, 500\}$; \texttt{max\_depth} $\in \{5, 10, \text{None}\}$
-    \item \textbf{XGB}: \texttt{n\_estimators} $\in \{100, 200, 300\}$; \texttt{max\_depth} $\in \{3, 5, 7\}$; \texttt{learning\_rate} $\in \{0.01, 0.1, 0.3\}$
-\end{itemize}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/multiomics/subtype_shap_mirna_beeswarms.pdf}
+\caption[Beeswarm plots for miRNA]{Beeswarm plots for miRNA.}
+\label{fig:subtype_shap_mirna_beeswarm}
+\end{figure}
 
-\chapter{Software and System Configuration}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/multiomics/subtype_shap_rppa_beeswarms.pdf}
+\caption[Beeswarm plots for RPPA]{Beeswarm plots for RPPA.}
+\label{fig:subtype_shap_rppa_beeswarm}
+\end{figure}
+
+\chapter{Software and Reproducibility}
 \label{app:software}
 
 \subsection*{Python Environment and Packages}
@@ -48,4 +52,14 @@
 \subsection*{System Configuration}
 \begin{itemize}
     \item Linux Mint 22.3
+\end{itemize}
+
+\subsection*{Hyperparameters}
+\label{app:hyperparam}
+\begin{itemize}
+    \item \textbf{LR}: $C = 1.0$; fixed (no inner search required)
+    \item \textbf{EN}: $C \in \{0.01, 0.1, 1.0, 10.0\}$; \texttt{l1\_ratio} $\in \{0.1, 0.5, 0.9\}$
+    \item \textbf{SVM}: $C \in \{0.01, 0.1, 1.0, 10.0\}$; \texttt{kernel} $\in \{\text{linear, RBF}\}$
+    \item \textbf{RF}: \texttt{n\_estimators} $\in \{100, 200, 500\}$; \texttt{max\_depth} $\in \{5, 10, \text{None}\}$
+    \item \textbf{XGB}: \texttt{n\_estimators} $\in \{100, 200, 300\}$; \texttt{max\_depth} $\in \{3, 5, 7\}$; \texttt{learning\_rate} $\in \{0.01, 0.1, 0.3\}$
 \end{itemize}
