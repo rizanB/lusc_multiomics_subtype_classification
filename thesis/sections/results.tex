@@ -430,6 +430,8 @@ Class-specific out-of-fold \gls{shap} values \parencite{Lundberg2017} were compu
 
 \subsubsection{Gene Expression} 
 
+Elastic net logistic regression (macro F1 = 0.770 $\pm$ 0.057) was used as the explanation model for gene expression in place of the highest-F1 SVM (macro F1 = 0.776), as exact class-specific additive attributions are available for linear models but not for \gls{rbf}-kernel SVMs. Fold stability for the top-20 per-subtype feature rankings ranged from 0.149 (classical, basal) to 0.202 (secretory): 15 to 20-fold above the random-expectation baseline of 0.01 for top-20 from 2,000 features, indicating that rankings reflect consistent signal rather than sampling artefacts, despite the small per-subtype held-out set sizes (minimum n=5 for primitive per fold).
+
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/multiomics/subtype_shap_ge_signed_bars.pdf}
@@ -437,12 +439,10 @@ Class-specific out-of-fold \gls{shap} values \parencite{Lundberg2017} were compu
 \label{fig:subtype_shap_ge}
 \end{figure}
 
-Elastic net logistic regression (macro F1 = 0.770 $\pm$ 0.057) was used as the explanation model for gene expression in place of the highest-F1 SVM (macro F1 = 0.776), as exact class-specific additive attributions are available for linear models but not for \gls{rbf}-kernel SVMs. Fold stability for the top-20 per-subtype feature rankings ranged from 0.149 (classical, basal) to 0.202 (secretory): 15 to 20-fold above the random-expectation baseline of 0.01 for top-20 from 2,000 features, indicating that rankings reflect consistent signal rather than sampling artefacts, despite the small per-subtype held-out set sizes (minimum n=5 for primitive per fold).
-
 \textbf{Classical subtype.} \textit{GSTM2} (glutathione S-transferase mu 2), \textit{TSPAN7}, \textit{ADCY10}, \textit{SCN9A}, and \textit{SOST} contributed positively towards classical subtype identity (Figure~\ref{fig:subtype_shap_ge}). 
 
 % TODO: move to discussion soon
-% \textit{GSTM2} is known to be involved in xenobiotic metabolism and oxidative stress response and is a defining molecular marker of the classical subtype \parencite{Wilkerson2010}, providing direct biological validation that the model is exploiting genuine subtype-specific signal. 
+% \textit{GSTM2} is known to be involved in xenobiotic metabolism and oxidative stress response and is a defining molecular marker of the classical subtype \parencite{Wilkerson2010}, providing evidence that the model is exploiting genuine subtype-specific signal/ learning genuine established biology. 
 
 High \textit{GSTM2} expression (yellow points) is consistently associated with positive SHAP contributions toward the classical class (Figure~\ref{fig:subtype_shap_ge_beeswarm}). Negatively contributing features included \textit{ZFP57}, \textit{BHMT}, \textit{PCDHB5}, and \textit{PCDHB6}; \textit{ZFP57} is a KRAB-domain methylation-sensitive transcription factor, and the protocadherin genes (\textit{PCDHB5}, \textit{PCDHB6}) suggest that high expression of cell-adhesion programmes characteristic of the basal subtype suppresses the model's classical-class score.
 
@@ -451,7 +451,10 @@ High \textit{GSTM2} expression (yellow points) is consistently associated with p
 % TODO: move to discussion later
 % \textit{CLCA4} (Calcium-activated chloride channel regulator 4) is expressed in squamous and basal epithelial cells and has been associated with squamous differentiation programmes, consistent with the basal subtype's keratin- and cell-adhesion-centred biology \parencite{Wilkerson2010}. 
 
+
+% may reflect decision boundary; like to distinguish from immune-hotter secretory subtype? epic data says basal has lower macrophage/stromafractions than secretory
 Immune-related genes \textit{IL1RN}, \textit{IL12RB2}, and \textit{CXCL1} suggest that the model additionally uses immune-related features to distinguish basal from the more immune-activated secretory subtype. 
+
 
 Negative contributors included \textit{FLG}, \textit{GPR15}, \textit{DDX11L2}, and \textit{PCSK2}.
 
@@ -473,7 +476,7 @@ Negative contributors (\textit{ARSE}, \textit{CT45A1}, \textit{HIST1H4H}) includ
 Negative contributors included \textit{RBP1}, \textit{LHX9}, \textit{WT1}, \textit{ABO}.
 
 % TODO; maybe move to discussion
-%  included two developmental transcription factors (\textit{LHX9}, \textit{WT1}) suggesting that programmes associated with squamous differentiation and lineage specification suppress the primitive class prediction. This is consistent with primitive tumours being defined by reduced differentiation rather than a positive lineage identity.
+%  included two developmental transcription factors (\textit{LHX9}, \textit{WT1}) suggesting that programmes associated with squamous differentiation and lineage specification suppress the primitive class prediction. This is consistent with primitive tumours being defined by reduced differentiation rather than a positive lineage identity. also looks heterogenous?
 
 \subsubsection{miRNA}
 
@@ -486,12 +489,22 @@ Negative contributors included \textit{RBP1}, \textit{LHX9}, \textit{WT1}, \text
 
 \subsubsection{RPPA}
 
+Logistic regression (macro F1 = 0.573 $\pm$ 0.041) was used as the explanation model for RPPA; linear SVM achieved marginally higher macro F1 (0.581), but both employ a linear decision function, but logistic regression yields exact additive per-class attributions without approximation. Signed bar charts and beeswarm plots of per-subtype SHAP contributions are shown in Figures~\ref{fig:subtype_shap_mirna} and \ref{fig:subtype_shap_rppa_beeswarm} respectively.
+
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/multiomics/subtype_shap_rppa_signed_bars.pdf}
 \caption[Subtype-specific SHAP contributions for RPPA]{Subtype-specific SHAP contributions for RPPA. Y-axis denotes proteins (features) and X-axis represents mean signed SHAP value.}
 \label{fig:subtype_shap_mirna}
 \end{figure}
+
+\textbf{Classical.} p62-LCK-ligand (\textit{SQSTM1}) was the dominant positive contributor to the classical identity, with a mean signed SHAP ($\approx$ 0.52) nearly twice the magnitude of the next-ranked feature (LCN2a, $\approx$0.26). Samples with high SQSTM1 protein abundance (yellow points) drive per-sample SHAP values up to approximately 2.5 (Figure~\ref{fig:subtype_shap_rppa_beeswarm}), the largest individual-sample attribution observed across all four RPPA subtypes, indicating that \textit{SQSTM1} acts as a particularly strong and high-variance discriminator. KEAP1-R-C and Rictor-R-C also contributed positively. Negative contributors included ASNS, YB-1-R-V, and c-Kit-R-V.
+
+\textbf{Basal.} LCN2a (Lipocalin-2/NGAL) was the dominant positive contributor ($\approx 0.75$), followed by NDRG1\_pT346, 53BP1, STAT5$\alpha$ and NF-kB-p65\_pS536. NF-kB-p65\_pS536 is known to be associated with epithelial differentiation programmes in squamous epithelium. PAI-1 was the strongest dominant negative contributor. LCN2 showing up as positive contributor for both basal and classical but not secretory suggests that the model uses LCN2 as a marker of epithelial identity to contrast secretory and primitive samples.
+
+\textbf{Secretory.} IGFBP2-R-V led positive contributions ($\approx 0.28$), followed by TTF1-R-V ($\approx 0.25$), TFRC-R-V,NDRG1\_pT346-R-V, and STAT5. Negative contributors included ATM-R-V, Fibronectin-R-V, and LCN2a-G-C ($\approx -0.09$; contrasting its positive role in basal and classical). TFRC (transferrin receptor CD71) is an iron uptake receptor whose expression is elevated in rapidly proliferating cells and in cancer types with high metabolic demand; its positive contribution is consistent with elevated proliferation relative to differentiation-focused basal or stress-response-focused classical subtypes. STAT5$\alpha$ contributes positively to both secretory and basal, suggesting partially overlapping RPPA profiles due to shared JAK-STAT pathway activation.
+
+\textbf{Primitive.} Annexin-1-M-E and Synaptophysin-R-E led positive contributions ($\approx 0.18$ each), followed by ASNS-R-V, p62-LCK-ligand-M-E, and MYH11-R-V. p16\_INK4a-R-V was the strongest negative contributor ($\approx-0.13$): high p16 protein abundance suppresses the primitive-class prediction, consistent with p16 acting as a tumour-suppressive brake on cell-cycle progression that characteristically diminished in poorly-differentiated primitive subtype. EPPK1-M-C, Akt-R-V, and Bcl-2-M-V also contributed negatively.
 
 
 % pairwise-jaccard similarity
