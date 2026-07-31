@@ -2,16 +2,99 @@
 \label{chap:methods}
 This chapter describes the computational workflow used to retrieve, process and analyse multi-omics data for \gls{lusc} molecular subtype classification and biological interpretation. The pipeline comprises five stages: data acquisition and cohort assembly (Section~\ref{sec:data_acquisition_method}), modality-specific preprocessing (Section~\ref{sec:omics_preprocessing_method}), in silico characterisation of subtypes (Section~\ref{sec:in_silico_char_method}), dimensionality analysis and subtype separability assessment (Section~\ref{sec:dataset_sep_method}), supervised classification (Section~\ref{sec:classification_method}), and interpretability analysis (Section~\ref{sec:interpretability_method}).
 
-
-% TODO: add a cohort assembly tikz figure
-
 \section{Data Acquisition and Label Matching}
 \label{sec:data_acquisition_method}
+
+\begin{figure}[htbp]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+  block/.style={
+    draw, rectangle, align=center,
+    minimum width=2.5cm, minimum height=1.1cm,
+    font=\sffamily\footnotesize, inner sep=5pt, line width=0.4pt
+  },
+  wideblock/.style={
+    draw, rectangle, align=center,
+    minimum width=4.5cm, minimum height=1.0cm,
+    font=\sffamily\footnotesize, inner sep=5pt, line width=0.4pt
+  },
+  groupbox/.style={
+    draw, dashed, rectangle,
+    inner sep=12pt, line width=0.6pt
+  },
+  arr/.style={->, >=stealth, line width=0.6pt}
+]
+
+\node[wideblock] (xena) at (0.5, 0) {TCGA-LUSC \\ (UCSC Xena Browser)};
+\node[wideblock] (gdc)  at (7.5, 0) {TCGA-LUSC \\ (NCI GDC Portal)};
+
+\node[block] (ge)    at (-3.3, -2.5) {Gene expression \\ $n = 178$};
+\node[block] (mirna) at (0, -2.5)    {miRNA expression \\ $n = 107$};
+\node[block] (cnv)   at (3.3, -2.5)  {Copy number \\ $n = 178$};
+\node[block] (rppa)  at (-1.65, -4.2) {RPPA \\ $n = 112$};
+\node[block] (meth)  at (1.65, -4.2)  {Methylation \\ $n = 76$};
+
+\node[block] (clin) at (4.5, -4.2) {Clinical Data \\ $n = 553$};
+
+\node[block] (labels) at (7.5, -2.5) {Subtype labels \\ 
+$n = 178$};
+\node[block] (maf)    at (9.0, -4.2) {Somatic mutations \\ $n = 485$};
+
+\node[draw, minimum width=13.0cm, minimum height=0.4cm, font=\sffamily\footnotesize] (match) at (2.85, -6.2) {Label matching};
+
+\node[block, minimum width=3.5cm] (classif) at (-1.5, -7.8) {Classification \\ $n = 76$ to $178$ per modality};
+\node[block, minimum width=3.5cm] (charact) at (4.5, -7.8) {Characterisation \\ $n = 174$--$178$};
+
+\begin{scope}[on background layer]
+  \node[groupbox, fit=(xena)(ge)(cnv)(clin)(labels)(maf)] (primary) {};
+\end{scope}
+
+% \node[anchor=south west, font=\sffamily\footnotesize] at (primary.north west) {Cohort used};
+
+\draw (xena.south) -- (0.5, -1.2);
+\draw (-3.3, -1.2) -- (4.5, -1.2);
+\draw[arr] (-3.3, -1.2) -- (ge.north);
+\draw[arr] (0, -1.2) -- (mirna.north);
+\draw[arr] (3.3, -1.2) -- (cnv.north);
+\draw[arr] (-1.65, -1.2) -- (rppa.north);
+\draw[arr] (1.65, -1.2) -- (meth.north);
+\draw[arr] (4.5, -1.2) -- (clin.north);
+
+\draw (gdc.south) -- (7.5, -1.2);
+\draw (7.5, -1.2) -- (9.0, -1.2);
+\draw[arr] (7.5, -1.2) -- (labels.north);
+\draw[arr] (9.0, -1.2) -- (maf.north);
+
+\draw (ge.south) -- (-3.3, -5.5);
+\draw (mirna.south) -- (0, -5.5);
+\draw (cnv.south) -- (3.3, -5.5);
+\draw (rppa.south) -- (-1.65, -5.5);
+\draw (meth.south) -- (1.65, -5.5);
+\draw (-3.3, -5.5) -- (3.3, -5.5); 
+\draw[arr] (-0.8, -5.5) -- (-0.8, -6.0);
+
+% clinical, labels, and maf
+\draw[arr] (clin.south) -- (clin.south |- match.north);
+\draw[arr] (labels.south) -- (labels.south |- match.north);
+\draw[arr] (maf.south) -- (maf.south |- match.north);
+
+%  to analysis
+\draw[arr] (-1.5, -6.4) -- (classif.north);
+\draw[arr] (4.5, -6.4) -- (charact.north);
+
+\end{tikzpicture}
+}
+
+\caption[Cohort assembly and data sources]{
+  Assembly of the TCGA-LUSC multi-omics cohort. Five matched omics modalities and clinical data were obtained from the UCSC Xena Browser; molecular subtype labels were assigned using published gene-expression signatures and matched to respective 12-character TCGA patient identifiers. Somatic mutation data were obtained from the NCI GDC.
+}
+\label{fig:cohort_assembly_figure}
+\end{figure}
 
 Matched omics data for the \gls{tcga}-\gls{lusc} cohort were retrieved through the UCSC Xena Platform \parencite{Goldman2020}, which hosts processed \gls{tcga} data harmonised from original \gls{tcga} releases. Following datasets were retrieved: (i) gene expression by \gls{rnaseq} (IlluminaHiSeq RNASeqV2, log\textsubscript{2}(\gls{rsem}$+1$)-normalised); (ii) \gls{dna} methylation (HumanMethylation450 Illumina Infinium array, Level 3 beta values); (iii) miRNA expression (IlluminaGA miRNASeq, log\textsubscript{2}(RPM$+1$)); (iv) copy number variation (GISTIC2 all-thresholded calls, integer scale $\{-2, -1, 0, 1, 2\}$); and (v) \gls{rppa} (\gls{mdacc}, normalised protein abundance).
 
 Molecular subtype labels (classical, secretory, basal, primitive) were derived from the original \gls{tcga} \gls{lusc} characterisation studies \parencite{Wilkerson2010, Hammerman2012}. Sample identifiers in each omics matrix were harmonised to the 12-character \gls{tcga} patient barcode format by trimming the sample and vial suffix (e.g., \texttt{TCGA-18-3406-01} $\to$ \texttt{TCGA-18-3406}). Where multiple samples from same patient were present following trimming (due to technical replicates or multiple tumour regions), first occurrence was retained, consistent with standard \gls{tcga} data processing practice. Only samples with both available omics data and a matching subtype label were retained.
-
 
 \section{Omics Preprocessing}
 \label{sec:omics_preprocessing_method}
