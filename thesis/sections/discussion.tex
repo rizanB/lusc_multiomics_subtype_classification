@@ -1,4 +1,69 @@
 \chapter{DISCUSSION}
 % TODO: add chapter overview
 
-% placeholder for now;
+Subtype signal was found to be the strongest in gene expression, followed by \gls{mirna} expression, with moderate evidence from RPPA and \gls{dna} methylation. Copy number variation performed close to chance, suggesting that broad thresholded copy number states do not independently reproduce the expression-defined subtype taxonomy.
+
+The results also show that model interpretation depends on both the omics modality and the classifier architecture. Linear models tended to share more top-ranked features with each other than with tree-based models, especially in gene expression and methylation. This is important for biomarker discovery because a single model can present only one view of the discriminative feature landscape. Features recovered consistently across model families or supported by pathway-level evidence should therefore be treated with greater confidence than features selected by one model alone.
+
+\section{Classification Performance Across Omics Modalities}
+
+Gene expression produced the highest classification performance, which is biologically expected because the classical, basal, secretory, and primitive \gls{lusc} subtypes were originally defined using transcriptional patterns. The strong performance of gene expression models indicates that the subtype labels retain a robust transcriptomic structure in the TCGA-\gls{lusc} cohort. The fact that several classifiers performed similarly on gene expression also suggests that the subtype signal is not limited to a specific model type.
+
+\gls{mirna} expression was the second most informative modality and showed the highest SHAP fold stability. This suggests that subtype-relevant post-transcriptional regulation is concentrated in a smaller and more reproducible feature space than gene expression or methylation. The identification of hsa-miR-205-5p is particularly meaningful because this \gls{mirna} is associated with squamous lineage identity \parencite{Lebanony2009}. The appearance of hsa-miR-101-3p also provides a plausible link to EZH2, which was identified at the protein level in RPPA \parencite{Varambally2008, Montani2024}.
+
+RPPA and methylation showed moderate predictive value. RPPA is limited by the number of proteins included in the platform, but it provided biologically interpretable signals related to oxidative stress, apoptosis, and kinase signalling. Methylation had the smallest cohort size and high-dimensional probe space, which likely reduced predictive performance and ranking stability. Nevertheless, methylation features mapped to biologically relevant genes such as LTBP1, GFPT2, HLA-C, and UBAP2L, supporting its value as a hypothesis-generating modality.
+
+CNV produced the weakest results. Although \gls{lusc} is known to contain recurrent chromosomal alterations, the GISTIC2-thresholded copy number data used here did not strongly distinguish the four expression-defined subtypes. This may reflect the coarse resolution of thresholded CNV calls, the possibility that copy number changes are shared across subtypes, or the fact that the subtype labels are more closely tied to regulatory state than to broad structural alteration patterns.
+
+\section{Subtype-Specific Interpretation}
+
+Classical subtype was consistently the best-discriminated subtype across the stronger modalities. This is consistent with the presence of distinctive oxidative stress and xenobiotic metabolism programs, including the NFE2L2-KEAP1 axis observed in the RPPA results. In contrast, primitive and basal samples showed more frequent misclassification. This may indicate that these subtypes share partially overlapping biological programs, such as proliferation, differentiation state, and epithelial lineage features, making their boundaries less distinct in small supervised learning datasets.
+
+This subtype-specific pattern is important because macro-averaged performance alone can hide clinically and biologically relevant differences among classes. A model can perform well overall while still struggling with the smallest or least distinct subtype. The use of macro F1 and confusion-matrix inspection therefore provided a more balanced assessment than accuracy alone.
+
+\section{Feature Importance and Biological Coherence}
+
+\gls{shap}-based interpretation recovered several biologically plausible features. In gene expression, TGM1 and KRT75 support the role of squamous differentiation in subtype classification. WNT-related genes and cell-adhesion features suggest that epithelial state and intercellular signalling also contribute to subtype boundaries. In \gls{mirna}, hsa-miR-205-5p supports squamous lineage identity, while hsa-miR-101-3p suggests a regulatory link to EZH2. In RPPA, SQSTM1, NFE2L2, KEAP1, BCL2L1, BID, AXL, SRC, and ERBB3 point toward oxidative stress response, apoptosis regulation, and growth-factor signalling.
+
+However, SHAP stability was modest across all modalities. This is expected in high-dimensional omics datasets with limited sample size, but it means that individual feature rankings should not be overinterpreted as definitive biomarkers. The more reliable conclusion is not that a single top-ranked gene or protein is sufficient, but that groups of features point repeatedly toward coherent subtype-associated biological programs.
+
+\section{Feature Overlap Across Models and Modalities}
+
+The cross-model Jaccard analysis showed that linear models selected substantially more similar feature sets than tree-based models. This pattern was strongest for gene expression and methylation, where between-architecture overlap was very low. The finding suggests that classifier architecture can influence biological conclusions, not only predictive accuracy. For biomarker discovery, this supports a multi-model strategy in which feature lists are compared across algorithms rather than accepted from one model in isolation.
+
+The cross-modality overlap analysis directly addressed whether the same genes recur across omics layers. No direct gene-symbol overlap was observed among top gene expression, methylation, and RPPA features at K = 50 or K = 100. This does not weaken the biological interpretation; rather, it shows that each omics layer captures a different molecular representation of subtype identity. Gene expression reflects transcript abundance, methylation reflects regulatory and epigenetic state, and RPPA reflects measured protein abundance or activation-related protein states.
+
+\section{Somatic Mutation Interpretation}
+Somatic mutation analysis provided a third, independent line of evidence consistent with the complementary model of subtype biology established by the cross-modality SHAP comparison. The mutation-level enrichment of NFE2L2 in the classical subtype directly parallels its identification as a top RPPA SHAP feature, providing a plausible mechanistic link: NFE2L2 mutations characteristically disrupt the KEAP1-binding degron motif, leading to NRF2 protein stabilisation detectable at the protein level. In contrast, the absence of subtype-associated mutation in gene- expression SHAP features (TGM1, KRT75) suggests these markers are governed by transcriptional or epigenetic regulation rather than coding-sequence alteration. This distinction reinforces a central finding of this thesis: that different omics layers do not redundantly encode the same subtype-discriminative information, but rather capture distinct, mechanistically coherent biological processes. The absence of a significant TMB difference across subtypes further suggests that LUSC molecular subtype identity reflects which genes are altered rather than how many mutations a tumour carries overall.
+
+\section{Pathway-Level Interpretation}
+
+Although direct gene-level overlap was absent, pathway enrichment revealed functional convergence. Gene expression features were enriched for neutrophil chemotaxis, cytokine-mediated signalling, cell-cell adhesion, and fatty acid metabolism. These findings suggest involvement of immune microenvironment and epithelial differentiation programs. RPPA features were enriched for apoptosis regulation, intrinsic apoptotic signalling, oxidative stress response, and kinase activity regulation. Methylation features implicated TGF-$\beta$ regulation, antigen presentation, hexosamine biosynthesis, and stress granule assembly.
+
+Different molecular platforms do not necessarily identify the same genes, but they still point toward related biological processes. This suggests that multi-omics interpretation should not depend only on direct overlap of named genes. Pathway-level and process-level convergence may be more informative for understanding tumour subtype biology.
+
+High expression or high protein abundance of pathway members, such as S100A8/S100A9/CXCL1 in gene expression or NFE2L2/KEAP1/SQSTM1 and BCL2L1/BID in RPPA, suggests that immune, oxidative-stress, and apoptosis-regulatory programs contribute to subtype discrimination. Conversely, enrichment of Hallmark KRAS Signalling Down suggests reduced KRAS-associated signalling within the ranked gene expression signature.
+
+However, pathway opening or closing is not directly measured by the present analysis. Future pathway scoring approaches, such as single-sample gene set enrichment analysis, PROGENy-style pathway activity inference, or promoter-aware methylation integration, are better suited to quantify activation and repression more directly.
+
+\section{Methylation and Promoter-Region Interpretation}
+
+CpG probes were mapped to nearby or annotated genes, allowing top methylation features to be connected to genes such as LTBP1, GFPT2, HLA-C, and UBAP2L. This allowed pathway enrichment and biological discussion, but it does not establish that these CpG sites regulate transcription through promoter methylation.
+
+Methylation has different functional consequences depending on genomic context. Promoter hypermethylation is often associated with transcriptional repression, whereas gene-body methylation, enhancer methylation, and intergenic methylation can have different or more context-dependent effects. Because the current analysis did not stratify CpG probes by promoter, enhancer, gene-body, or intergenic location, current methylation findings can be regarded as candidate epigenetic signals.
+
+\section{Limitations}
+
+Several limitations should be acknowledged. First, all analyses were performed using TCGA-\gls{lusc}; independent validation was not performed because matched multi-omics datasets with compatible subtype labels are limited. Second, sample sizes varied across modalities, from 76 methylation samples to 178 gene expression and CNV samples. This affects both classifier performance and the stability of feature importance rankings.
+
+Third, SHAP fold stability was low to moderate, indicating that top-ranked features are sensitive to training-set composition. Fourth, the use of elastic net for gene expression SHAP interpretation, instead of the best-performing RBF-SVM, introduces a small model-explainer mismatch; however, the macro F1 difference between the two models was only 0.006 (0.776 for SVM versus 0.770 for EN). Fifth, pathway enrichment depends on database coverage and the chosen feature threshold, meaning some subtype-relevant biology may be missed. 
+
+Mutation frequencies reported in this analysis reflect GDC-harmonized ensemble-consensus somatic calls, which apply conservative multi-caller filtering and may report lower absolute mutation frequencies than earlier TCGA-LUSC publications using different variant-calling pipelines; relative, subtype-level comparisons are unaffected since identical processing was applied uniformly across all subtypes. Additionally, mutation data were available for a subset of the full gene-expression cohort (n = 174 of 178), and pairwise mutation frequency comparisons used relatively small per-subtype sample sizes (27-63), which limits statistical power for genes with lower mutation rates.
+
+Finally, the present analysis evaluates each modality separately; it does not yet test whether integrated multi-omics modelling improves performance beyond the best single modality.
+
+\section{Implications and Future Directions}
+
+Despite these limitations, the study provides a useful interpretable framework for \gls{lusc} subtype analysis. It shows that gene expression and \gls{mirna} are the strongest individual platforms for supervised subtype classification, while methylation and RPPA contribute complementary biological information. It also demonstrates that model architecture can shape feature interpretation, supporting the use of multi-model comparison in biomarker discovery.
+
+Future work should prioritise external validation, promoter-aware methylation analysis, matched methylation-expression correlation, subtype-specific pathway activity scoring, and integrated multi-omics modelling. These extensions would help distinguish robust subtype biology from model-specific feature selection and would strengthen the translational relevance of the candidate biomarkers and pathways identified in this thesis.
