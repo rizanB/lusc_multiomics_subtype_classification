@@ -1,0 +1,68 @@
+\section{Multi-Omics Profiling in \gls{lusc} Research: Platforms and Data Types}
+
+%TODO: i have a quick table but i feel like it misses the mark completely; by that, i mean - it doesnt cover how the data was actually generated; like kind of a background, what methods, what sample groups, what technologies, the tcga lusc dataset has metadata.. im talking about that, what demographics, details like that..
+
+\subsection{Overview of TCGA Omics Platforms}
+
+The TCGA project and the UCSC Xena platform have made matched multi-omics cancer data broadly accessible for computational analysis \parencite{Goldman2020}. In \gls{lusc}, five omics modalities are available: gene expression, \gls{dna} methylation, \gls{mirna} expression, copy number variation, and RPPA. Each measures a distinct molecular layer with different biological content, dynamic range, and analytical properties.
+
+%TODO: does this table need references? maybe in caption or rows or sth..
+
+\begin{table}[ht]
+\small
+\caption[Omics modalities used for LUSC subtype classification]{Omics
+modalities used in this thesis and their key properties.}
+\centering
+\begin{tabular}{p{2.5cm}p{3.0cm}p{3.0cm}p{4.2cm}}
+\toprule
+\textbf{Modality} & \textbf{Measured layer} & \textbf{Feature space}
+    & \textbf{Interpretive value} \\
+\midrule
+Gene expression & mRNA transcript abundance
+    & $\sim$17{,}000--20{,}000 genes after filtering
+    & Directly reflects transcriptional programs defining subtype labels. \\[3pt]
+\gls{dna} methylation & CpG methylation beta values
+    & $\sim$450{,}000 probes; 2{,}000 retained
+    & Epigenetic regulation; context-dependent interpretation. \\[3pt]
+\gls{mirna} expression & Mature small-RNA abundance
+    & $\sim$200 miRNAs after filtering
+    & Post-transcriptional regulatory programs and lineage markers. \\[3pt]
+Copy number variation & GISTIC2 thresholded calls
+    & 2{,}000 most variable genes
+    & Structural genomic alteration; discrete ordinal scale. \\[3pt]
+RPPA & Protein/phosphoprotein abundance
+    & 238 antibodies post-QC
+    & Functional signalling states; closest to phenotype. \\
+\bottomrule
+\end{tabular}
+\label{tab:omics_layers_lit_review}
+\end{table}
+
+
+Gene expression data quantify transcript abundance and are the most directly relevant modality for recovering transcriptomically defined subtypes \parencite{Wilkerson2010}. RSEM-normalised RNA-seq values provide gene-level estimates compatible with downstream supervised learning after expression-level filtering and variance-based feature selection \parencite{Li2013}. \gls{dna} methylation arrays measure beta values at CpG sites across promoters, gene bodies, CpG islands, shores, shelves, and intergenic regions \parencite{Bibikova2011}; interpretation depends critically on probe genomic context, as promoter hypermethylation is commonly associated with transcriptional silencing whereas gene-body methylation may have activating or neutral effects. \gls{mirna} expression profiles are compact (hundreds of measured miRNAs) and may offer a more stable classification space than the full transcriptome \parencite{Wilkerson2010}. GISTIC2-thresholded copy number variation data encode discrete genomic gain and loss events \parencite{Mermel2011}; although \gls{lusc} carries recurrent chromosomal alterations, thresholded CNV may not resolve expression-defined subtypes as effectively as regulatory data layers. RPPA measures protein abundance using validated antibody panels, capturing functional pathway activity closer to the cellular phenotype than mRNA abundance alone \parencite{Tibes2006}.
+
+
+\subsection{Preprocessing Standards in Omics Studies}
+
+%TODO: looks thin, what are the standard preprocessing pipelines or studies such as mine? current section doesnt address that at all.
+
+Appropriate preprocessing is essential for valid supervised learning on omics data and differs substantially across platforms.
+ 
+For RNA-seq gene expression, RSEM-normalised values are filtered to remove unexpressed genes (median log$_2$ expression $< 1.0$) before variance-based feature selection. Median absolute deviation (MAD) is preferred over standard deviation for omics feature selection because it is robust to outlier samples and monotonically related to
+biological variability \parencite{Hoadley2018}. The top 2{,}000 most variable genes by MAD were retained in the present study, a threshold widely used in cancer classification studies \parencite{Hoadley2018, Picard2021}.
+ 
+For methylation, Level~3 beta values undergo probe-level quality control: probes missing in more than 20\% of samples are removed, remaining missing values are imputed using per-probe median, and near-invariant probes (standard deviation $< 0.05$) are excluded \parencite{Bibikova2011}. Probes with rs-prefix (SNP probes) are identified separately because their variation reflects genotype rather than epigenetic state, and their presence among top-ranked features should not be interpreted as methylation biology \parencite{Bibikova2011}.
+ 
+For \gls{mirna} expression, missing values are treated as structural zeros (zero reads detected) rather than technical missingness and are filled accordingly \parencite{Wilkerson2010}. Low-abundance miRNAs (median log$_2$(RPM+1) $< 1.0$) are filtered before MAD-based selection of the 200 most variable mature miRNAs. For copy number variation, discrete GISTIC2 calls are used directly without normalisation, as the ordinal scale encodes categorical genomic states \parencite{Mermel2011}. For RPPA, normalised protein abundance values undergo missing-value filtering and median imputation, but no further feature selection is required given the limited panel size (238 antibodies post-QC) \parencite{Tibes2006}.
+ 
+A critical consideration across all modalities is the prevention of information leakage \parencite{Vabalas2019}. Any data-adaptive step - feature scaling, missing-value imputation from training data, scaler fitting - must be performed exclusively on training folds and applied to validation folds using parameters estimated from training data only.
+In this thesis, StandardScaler normalisation was fitted and applied within training folds; variance-based MAD filtering was applied once before cross-validation as an unsupervised preprocessing step, which is a minor limitation acknowledged in the discussion.
+
+
+\subsection{Modality-Specific Biological Considerations}
+
+Each omics layer provides a different window onto tumour biology. Gene expression is expected to most faithfully encode the expression-defined subtype taxonomy \parencite{Wilkerson2010}. Methylation provides orthogonal epigenetic information but requires promoter-context annotation for mechanistic interpretation, which is a known limitation in purely data-driven analyses \parencite{Bibikova2011}. \gls{mirna} profiles regulate mRNA stability and translation and may capture lineage-state information compactly \parencite{Wilkerson2010}. RPPA captures functional signalling
+pathway activity but is limited by the antibody panel breadth \parencite{Tibes2006}. CNV captures structural genomic alterations that may be shared across subtypes and may not preserve expression- defined subtype boundaries \parencite{Hammerman2012}.
+ 
+Multi-omics cancer studies increasingly pursue integration rather than modality-by-modality comparison \parencite{Hoadley2018, Picard2021, Nicora2020, Argelaguet2020}. Integration can improve classification and reveal inter-modality dependencies, but it obscures which platform contributes which biological information. The complementary approach taken here - independent modality
+comparison before integration - establishes a principled baseline for assessing each platform's discriminative value.

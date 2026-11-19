@@ -1,0 +1,40 @@
+\section{Feature Importance and Model Interpretability in Genomics}
+
+\subsection{Interpretability Problem in ML-Based Omics Studies}
+ 
+In biomedical machine learning, predictive accuracy is only part of the scientific goal \parencite{Janssen2024}. A model that classifies cancer subtypes with high macro F1 but provides no biological explanation is of limited value for biomarker discovery or mechanistic understanding. Omics studies require that the molecular features driving predictions correspond to plausible biological mechanisms, not statistical artefacts \parencite{Janssen2024}. Interpretability is also increasingly required for clinical translation, where regulatory and clinical stakeholders demand that model decisions be explicable and auditable.
+ 
+\subsection{SHAP}
+ 
+SHapley Additive exPlanations (\gls{shap}) provide a rigorous feature-attribution framework grounded in cooperative game theory \parencite{Lundberg2017}. The SHAP value for feature $j$ and sample $\mathbf{x}$ is the Shapley value of feature $j$ in the prediction ``game'':
+ 
+\begin{equation}
+\phi_j(\mathbf{x}) = \sum_{S \subseteq \mathcal{F} \setminus \{j\}}
+    \frac{|S|!\bigl(|\mathcal{F}| - |S| - 1\bigr)!}{|\mathcal{F}|!}
+    \bigl[f_{S \cup \{j\}}(\mathbf{x}) - f_S(\mathbf{x})\bigr]
+\label{eq:shap_value}
+\end{equation}
+ 
+where $\mathcal{F}$ is the full feature set and $f_S(\mathbf{x})$ is the model's prediction using only features in coalition $S$. The Shapley value is the unique attribution satisfying efficiency (values sum to the difference between the model output and its expectation), symmetry (interchangeable features receive equal attribution), and consistency (a feature's attribution does not decrease when it contributes more) \parencite{Lundberg2017}. For multi-class classification, SHAP values are computed per class and the mean absolute value across all classes and samples produces a global feature ranking.
+ 
+Efficient SHAP estimators are model-class-specific: LinearExplainer for linear models exploits the linearity of the prediction function \parencite{Lundberg2017}; TreeSHAP provides exact polynomial-time computation for tree ensembles \parencite{Lundberg2020}; KernelSHAP provides a model-agnostic approximation at higher computational cost. For the non-linear RBF-SVM used for gene expression, elastic net (with negligibly different macro F1) was substituted to enable LinearExplainer - a minor model-explainer mismatch documented in the methods.
+ 
+SHAP values are attribution scores, not causal measures. A high absolute SHAP value indicates that a feature strongly influenced model predictions, but does not establish that the feature is causally responsible for subtype membership or clinically actionable \parencite{Lundberg2017}. Directional SHAP values can suggest whether high feature values push predictions toward or away from a subtype, but pathway activation or repression requires orthogonal evidence.
+ 
+\subsection{SHAP Stability and Reliability}
+ 
+Feature importance rankings are sensitive to training-set composition, particularly in high-dimensional settings where many correlated features may carry equivalent predictive information \parencite{Kalousis2007}. If a feature's ranking varies substantially across cross-validation folds, its biological interpretation carries limited confidence. Stability assessment using pairwise Spearman rank correlation of top-ranked feature lists across fold pairs provides a practical measure of ranking reproducibility \parencite{Kalousis2007}. The stability thresholds proposed by Kalousis et al. - Spearman $\rho > 0.7$ (high), $0.3$-$0.7$ (moderate), $< 0.3$ (low) - are used as reference criteria in this thesis, with the expectation that small modality sample sizes will produce moderate to low stability.
+ 
+\subsection{Architecture-Dependent Feature Selection}
+ 
+Different classifier architectures can achieve similar predictive performance while selecting fundamentally different subsets of molecular features. Linear models prioritise features with strong marginal associations with class labels, while tree-based models can exploit non-linear interactions and threshold effects. This divergence means that a feature list derived from a single model type may provide an incomplete or biased view of the discriminative molecular landscape, and biomarker nominations that appear only in one model family should be treated with lower confidence than those replicated across families.
+ 
+Jaccard similarity quantifies the overlap between two top-$K$ feature sets:
+ 
+\begin{equation}
+J(A, B) = \frac{|A \cap B|}{|A \cup B|}
+\label{eq:jaccard}
+\end{equation}
+ 
+where $J = 1$ indicates complete overlap and $J = 0$ indicates disjoint sets. In this thesis, systematic Jaccard analysis across all five model pairs for each modality constitutes - to our knowledge - the first quantitative characterisation of architecture-dependent feature selection in a multi-omics \gls{lusc} classification study. The finding that linear and tree-based models produce near-disjoint feature sets (between-group Jaccard $< 0.10$ for gene expression and methylation) has direct implications for the reliability of single-model biomarker nominations in omics research.
+ 

@@ -1,0 +1,133 @@
+\section{\gls{ml} for Cancer Subtype Classification}
+
+\subsection{Classical ML Approaches on Omics Data}
+
+Cancer omics datasets are characteristically high-dimensional and low-sample-size: thousands of features are measured in tens to hundreds of samples. This strongly favours regularised linear and margin-based methods over more parameter-intensive approaches \parencite{Vabalas2019}. Five classifiers spanning linear and tree-based families were benchmarked in this thesis.
+
+\subsubsection{Logistic Regression}
+
+Logistic regression models class membership probability as a linear function of features passed through a softmax transformation. For a $K$-class problem with feature vector $\mathbf{x} \in \mathbb{R}^p$ and weight matrix $\mathbf{W} \in \mathbb{R}^{p \times K}$:
+
+\begin{equation}
+P(y = k \mid \mathbf{x}) =
+    \frac{\exp\!\bigl(\mathbf{w}_k^\top \mathbf{x} + b_k\bigr)}
+         {\sum_{j=1}^{K} \exp\!\bigl(\mathbf{w}_j^\top \mathbf{x} + b_j\bigr)}
+\label{eq:softmax}
+\end{equation}
+
+
+Training minimises the regularised cross-entropy over $n$ samples:
+
+\begin{equation}
+\mathcal{L}(\mathbf{W}) =
+    -\frac{1}{n}\sum_{i=1}^{n} \log P(y_i \mid \mathbf{x}_i)
+    + \frac{1}{2C}\,\|\mathbf{W}\|_F^2
+\label{eq:lr_loss}
+\end{equation}
+
+
+where $C$ is the inverse regularisation strength: smaller $C$ imposes stronger L2 shrinkage, reducing overfitting in high-dimensional settings \parencite{Pedregosa2011}. The linear weight structure makes logistic regression coefficients directly interpretable and compatible with efficient SHAP explanations, making it a valuable interpretable baseline.
+
+
+\subsubsection{Elastic Net Penalised Logistic Regression}
+
+Elastic net adds a combination of L1 (lasso) and L2 (ridge) penalties to the logistic regression loss \parencite{ZouHastie2005}:
+
+\begin{equation}
+\mathcal{L}_{\mathrm{EN}}(\mathbf{W}) =
+    -\frac{1}{n}\sum_{i=1}^{n} \log P(y_i \mid \mathbf{x}_i)
+    + \frac{1}{C}\!\left[
+        \rho\,\|\mathbf{W}\|_1
+        + \frac{1-\rho}{2}\,\|\mathbf{W}\|_F^2
+    \right]
+\label{eq:en_loss}
+\end{equation}
+ 
+where $\rho \in [0,1]$ is the \texttt{l1\_ratio}. Pure L1 ($\rho=1$) produces sparse solutions but selects one feature arbitrarily when correlated features carry similar information; pure L2 ($\rho=0$) retains all features but does not perform selection. Intermediate $\rho$ enables grouped selection of correlated features - a property particularly valuable for co-expressed gene modules and correlated methylation probes in omics data \parencite{ZouHastie2005}.
+
+
+\subsubsection{Support Vector Machine}
+
+A support vector machine constructs a maximum-margin hyperplane separating classes \parencite{Cortes1995}. The soft-margin primal problem for binary classification is:
+
+\begin{align}
+\min_{\mathbf{w},b,\boldsymbol{\xi}} \;\;
+    &\tfrac{1}{2}\|\mathbf{w}\|^2 + C\sum_{i}\xi_i
+    \label{eq:svm_primal}\\
+\text{s.t.}\;\;
+    &y_i\bigl(\mathbf{w}^\top\mathbf{x}_i + b\bigr)
+    \geq 1 - \xi_i,\;\; \xi_i \geq 0 \notag
+\end{align}
+
+where $C$ controls the margin-misclassification trade-off. The RBF kernel $K(\mathbf{x}_i,\mathbf{x}_j) = \exp(-\gamma\|\mathbf{x}_i - \mathbf{x}_j\|^2)$ extends the SVM to non-linear boundaries implicitly, with $\gamma$ controlling the width of influence of each training point. Multi-class classification uses a one-versus-rest strategy. SVMs are competitive on high-dimensional omics data because the maximum-margin criterion implicitly regularises the solution: in very high-dimensional feature spaces, classes are often linearly separable and the decision boundary generalises well with appropriate regularisation \parencite{Vapnik1995}.
+
+
+\subsection{Ensemble and Boosting Methods in Cancer Genomics}
+
+Tree-based ensemble methods can model non-linear relationships and feature interactions that linear classifiers cannot capture.
+
+\subsubsection{Random Forest}
+
+Random forests construct $B$ decision trees on bootstrap samples of the training data, introducing randomness at each split by considering only $m = \lfloor\sqrt{p}\rfloor$ randomly selected features \parencite{Breiman2001}. The prediction is the majority vote across all trees. Feature decorrelation through random subsampling reduces the variance of the ensemble and prevents any single highly predictive feature from dominating every tree. Feature importance is estimated as the mean decrease in node impurity (MDI) across all trees and all splits involving a feature \parencite{Breiman2001}; however, MDI can overestimate the importance of high-cardinality features, motivating the use of SHAP values as theoretically grounded alternatives.
+ 
+Key hyperparameters are \texttt{n\_estimators} (ensemble size; more trees reduce variance until diminishing returns), and \texttt{max\_depth} (tree depth; deeper trees have higher variance but lower bias). At the sample sizes typical of TCGA modality cohorts (76-178 samples), the high variance of individual deep trees makes ensemble averaging particularly important.
+
+\subsubsection{XGBoost}
+
+
+XGBoost implements regularised gradient boosting, sequentially adding trees $f_m$ to minimise the second-order Taylor expansion of the loss
+\parencite{Chen2016}:
+ 
+\begin{equation}
+\mathcal{L}_m = \sum_{i=1}^{n}\!\left[
+    g_i f_m(\mathbf{x}_i)
+    + \tfrac{1}{2} h_i f_m(\mathbf{x}_i)^2
+\right] + \Omega(f_m)
+\label{eq:xgb_loss}
+\end{equation}
+ 
+where $g_i$ and $h_i$ are the gradient and Hessian of the per-sample loss, and $\Omega(f_m) = \gamma T + \tfrac{1}{2}\lambda\|\mathbf{w}\|^2$ regularises tree complexity (leaf count $T$) and leaf weight magnitude $\mathbf{w}$. The ensemble is updated as $F_m = F_{m-1} + \eta f_m$, where $\eta$ is the shrinkage (learning rate). XGBoost can capture non-linear interactions and threshold effects invisible to linear models, but in the high-dimensional, low-sample-size omics regime it requires careful regularisation to avoid overfitting \parencite{Chen2016, Vabalas2019}. The architectural difference between linear decision boundaries (logistic regression, elastic net, linear SVM) and tree-based interaction modelling (RF, XGBoost) motivates systematic comparison of feature selection across both families, which is a
+central analytical contribution of this thesis.
+
+\subsection{Recent Advances: Deep Learning and Foundation Models
+            for Cancer Genomics}
+ 
+Deep learning has substantially extended the methodological landscape for cancer genomics since the early 2020s. This section reviews these advances to contextualise the choice of classical machine learning methods in the present thesis.
+ 
+\textbf{Variational autoencoders.}
+Variational autoencoders (VAEs) learn a continuous latent representation of gene expression data by maximising a lower bound on the marginal likelihood of observed counts under a generative model. scVI \parencite{Lopez2018} introduced a negative-binomial generative VAE for single-cell RNA-seq that accounts for dropout and sequencing depth, enabling probabilistic dimensionality reduction and imputation without requiring prior feature selection. VAE-based methods have since been applied to multi-omics integration \parencite{Argelaguet2020}, yielding MOFA+, which decomposes shared and modality-specific variance across RNA, methylation, protein, and other layers into a compact set of latent factors.
+ 
+\textbf{Transformer-based models.}
+Transformer architectures, originally developed for natural language processing, have been adapted to genomic sequences and transcriptomic profiles. DNABERT \parencite{Ji2021} pre-trained a BERT model on human DNA sequences using $k$-mer tokenisation, learning contextual representations of regulatory motifs that transfer to downstream tasks such as splice-site prediction and promoter classification. GeneFormer \parencite{Theodoris2023} pre-trained a transformer on 30 million single-cell transcriptomes by treating genes as tokens ranked by expression level within each cell; fine-tuning on small labelled sets achieved competitive or superior performance on cell-type classification and gene dosage sensitivity prediction compared to models trained from scratch. scGPT \parencite{Cui2024} extended the generative pre-training paradigm to single-cell multi-omics, producing embeddings that support cell-type annotation, perturbation prediction, and multi-batch integration. These foundation models represent a paradigm shift from task-specific training to pre-train-fine-tune workflows analogous to those successful in large language models.
+ 
+\textbf{Graph neural networks.}
+Graph neural networks (GNNs) represent samples or features as nodes in a graph and aggregate information through message-passing along edges defined by biological knowledge-protein-protein interactions, pathway co-membership, or genomic proximity. In cancer genomics, GNNs have been applied to patient similarity networks for survival prediction and to knowledge-graph-constrained multi-omics integration, enabling biologically guided feature aggregation that is not possible with fully connected neural networks.
+ 
+\textbf{Relevance to the present thesis.}
+Despite their demonstrated capabilities, deep learning and foundation model approaches face an important constraint in the present setting: they typically require thousands to tens of thousands of labelled training examples to train effectively without severe overfitting. The TCGA-\gls{lusc} modality cohorts in this thesis range from 76 (methylation) to 178 (gene expression) samples, placing the study firmly in the high-dimensional, low-sample-size regime where the bias-variance trade-off strongly favours regularised linear classifiers and shallow ensemble methods \parencite{Vabalas2019}. Furthermore, the primary scientific goal here is interpretable biomarker identification, for which the attribution properties of linear model coefficients and theoretically grounded SHAP values \parencite{Lundberg2017, Lundberg2020} are better suited than the post-hoc attribution methods (attention rollout, integrated gradients) applied to deep learning models, which may not satisfy the same axiomatic properties.
+
+
+\subsection{Multi-Omics Classification Studies}
+
+Machine learning has increasingly been applied to cancer subtype classification, prognosis prediction, and biomarker discovery across single-omics and multi-omics datasets \parencite{Picard2021, Nicora2020}. Most multi-omics studies attempt to combine data layers into a shared predictive model; early fusion (concatenation before modelling), late fusion (ensemble of modality-specific predictions), or intermediate fusion (joint latent representation) strategies have all been explored \parencite{Picard2021}. Integration can improve performance when modalities contain complementary signals, but it conceals which platform contributes which biological information-precisely the question motivating the modality-by-modality comparison in this thesis.
+ 
+A notable observation across published multi-omics cancer studies is that gene expression consistently provides the strongest discriminative signal for expression-defined subtypes, regardless of the classifier used \parencite{Hoadley2018}. This is biologically expected when the subtype labels themselves are derived from expression, but it raises the question of whether other platforms provide independent subtype information or merely correlated reflections of the same transcriptional state.
+
+\subsection{Class Imbalance in Cancer Subtype Classification}
+Subtype classification in cancer omics commonly involves imbalanced classes because rare or poorly differentiated subtypes are underrepresented in cohorts. In the TCGA-\gls{lusc} gene expression cohort used here, the primitive subtype comprises only 27 of 178 samples (15\%), compared to 65 classical (37\%) and 43 each basal and secretory samples. Accuracy is a misleading metric in this regime because a classifier that never predicts the primitive subtype still achieves 85\% accuracy. Macro-averaged F1 score weights each class equally:
+ 
+\begin{equation}
+F1_{\mathrm{macro}} = \frac{1}{K}\sum_{k=1}^{K}
+    \frac{2 \cdot \mathrm{Precision}_k \cdot \mathrm{Recall}_k}
+         {\mathrm{Precision}_k + \mathrm{Recall}_k}
+\label{eq:macro_f1}
+\end{equation}
+ 
+and is used as the primary performance metric throughout this thesis \parencite{Vabalas2019}. To mitigate imbalance during training, \texttt{class\_weight=`balanced'} was applied to logistic regression, elastic net, and random forest, scaling per-sample loss contributions inversely proportional to class frequency. XGBoost used equivalent sample weighting. Stratified cross-validation preserves the original class ratio in each fold, ensuring that performance estimates are not distorted by fold-level imbalance \parencite{Vabalas2019}.
+
+
+\subsection{Cross-Validation Design for Small Biomedical Datasets}
+
+Small sample size is a structural feature of multi-omics cancer studies that profoundly affects both model selection and performance estimation. A single held-out test set partitioned from 76-178 samples leaves too few training examples to fit most regularised classifiers reliably, and introduces high variance in the estimated performance \parencite{Vabalas2019}. Stratified five-fold cross-validation is therefore the recommended approach for datasets of this size, as all samples contribute to both training and validation across folds \parencite{Vabalas2019, Demsar2006}. Nested cross-validation-a three-fold inner loop for hyperparameter selection embedded within each outer fold-prevents hyperparameter optimism from inflating reported performance \parencite{Demsar2006}.
+ 
+Statistical comparison of classifiers across folds uses non-parametric methods. The Friedman test serves as a non-parametric alternative to repeated-measures ANOVA for comparing multiple classifiers across multiple evaluation sets, and when significant, the Nemenyi post-hoc test performs pairwise comparisons with family-wise error rate control \parencite{Demsar2006}. These procedures are the standard recommendation for multi-classifier benchmarking in machine learning and are applied to \textit{per-modality} comparisons in this thesis \parencite{Demsar2006}.
